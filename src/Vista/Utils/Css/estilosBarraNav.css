@@ -1,0 +1,43 @@
+.barra-lateral {
+    width: 250px;
+    height: 100vh;
+    background-color: #333;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: width 0.3s ease;
+    overflow: hidden;
+  }
+  
+  .barra-lateral.plegado {
+    width: 60px;
+  }
+  
+  .toggle-btn {
+    background-color: transparent;
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 10px;
+  }
+  
+  .menu ul {
+    list-style: none;
+    padding: 10px;
+  }
+  
+  .menu ul li {
+    padding: 10px;
+  }
+  
+  .menu ul li a {
+    color: white;
+    text-decoration: none;
+  }
+  
+  .barra-lateral.plegado .menu ul li a {
+    display: none;
+  }
+    

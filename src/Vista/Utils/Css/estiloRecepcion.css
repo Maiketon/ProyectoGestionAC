@@ -1,0 +1,60 @@
+.contenedor-formulario {
+    width: calc(100% - 250px);
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+  }
+  
+  /* Cuando el menú está oculto */
+  .contenedor-formulario.expandido {
+    width: calc(100% - 0px);
+    max-width: 1600px;
+    transform: scale(1.02); /* Pequeño efecto de crecimiento */
+  }
+  
+  /* Cuando la barra lateral está abierta (reducido) */
+  .contenedor-formulario.reducido {
+    width: calc(100% - 0px);
+    margin-left: 130px;
+  }
+  /* Estilos de las filas */
+  .fila {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .fila label {
+    width: 150px;
+    font-weight: bold;
+  }
+  
+  .fila input,
+  .fila select {
+    flex-grow: 1;
+    padding: 8px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  textarea {
+    width: 100%;
+    height: 100px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  /* Botón de enviar */
+  button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+  }
+  
