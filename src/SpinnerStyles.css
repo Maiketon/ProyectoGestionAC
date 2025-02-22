@@ -1,0 +1,6 @@
+.HashLoader svg {
+    stroke: none; 
+  }
+  .HashLoader svg circle {
+    stroke: #ffff00; /* agregar este y cambiar color a amarillo inicial */
+  }
