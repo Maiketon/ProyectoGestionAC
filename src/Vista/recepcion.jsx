@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Utils/Css/estiloRecepcion.css";
 
 const Formulario = ({ plegado }) => {
+
+  useEffect(() => {
+      console.log("🚀 Formulario montado");
+    }, []);
+
   const [formData, setFormData] = useState({
     fecha: "",
     referencia: "",
