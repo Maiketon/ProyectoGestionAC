@@ -36,8 +36,8 @@ const Login = () => {
      
         if (response.data.status ==="success") {
             setEsIncorrecto(false);
-            setShowModal(true);
-            setMensajeModal("Inicio de sesión exitoso 🎉 \n Accediendo al sistema...");
+            //setShowModal(true);
+            //setMensajeModal("Inicio de sesión exitoso 🎉 \n Accediendo al sistema...");
           console.log("Login exitoso");
           console.log("Usuario",usuario,"Contraseña",password);
           localStorage.setItem("token", response.data.access_token); //GUARDA EL TOKEN ANTES DE HACER EL REDIRECCIONAMIENTO//
