@@ -33,13 +33,13 @@ function BarraLateral({ setPlegado }) {
             <Link to="/dashboard/recepcion">Recepción</Link>
           </li>
           <li>
-            <Link to="/dashboard/modificar">Modificar</Link>
+            <Link to="/dashboard/seguimiento">Seguimiento</Link>
           </li>
+          <hr></hr>
           <li>
-            <Link to="/dashboard/respuesta">Respuesta</Link>
+            <Link to="/dashboard/consultar">Consultar</Link>
           </li>
-        </ul>
-        <ul>
+          <hr></hr>
           <li>
             <a href="#" onClick={handleLogout}>
               Salir

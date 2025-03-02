@@ -36,7 +36,7 @@
 
 /* Cuando la barra lateral está abierta (reducido) */
 .contenedor-formulario.reducido {
-  margin-left: 250px; /* Espacio para la barra lateral */
+  margin-left: 150px; /* Espacio para la barra lateral */
 }
 
 /* Estilos de las filas */

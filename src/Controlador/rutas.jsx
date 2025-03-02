@@ -6,8 +6,9 @@ import Dashboard from "../Vista/dashboard";
 import Inicio from "../Vista/inicio";
 // Placeholder para componentes futuros
 import Recepcion from "../Vista/recepcion";
-import Modificar from "../Vista/modificar";
+import Seguimiento from "../Vista/seguimiento";
 import Respuesta from "../Vista/respuesta";
+import Consultar from "../Vista/consultar";
 
 function RutasApp() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -29,8 +30,8 @@ function RutasApp() {
           <Route index element={<Navigate to="/dashboard/inicio" />} />
           <Route path="inicio" element={<Inicio />} />
           <Route path="recepcion" element={<Recepcion />} />
-          <Route path="modificar" element={<Modificar />} />
-          <Route path="respuesta" element={<Respuesta />} />
+          <Route path="seguimiento" element={<Seguimiento />} />
+          <Route path="consultar" element={<Consultar />} />
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

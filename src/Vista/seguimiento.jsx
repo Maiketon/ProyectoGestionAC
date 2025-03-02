@@ -2,7 +2,7 @@ import React from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import Logo from "./Utils/Images/LogoAlcaldiaVertical.png";
 
-const Inicio = () => {
+const Seguimiento = () => {
   return (
     <Container className="d-flex align-items-center justify-content-center">
       <Row className="text-center">
@@ -14,7 +14,7 @@ const Inicio = () => {
             <div className="custom-spinner" />
           </div>
           {/* Mensaje de espera */}
-          <h2><p className="mt-3 text-muted">...::: Inicio :::...</p></h2>
+          <h2><p className="mt-3 text-muted">...::: Seguimiento :::...</p></h2>
           <h2><p className="mt-3 text-muted">...::: En espera de actividades :::...</p></h2>
         </Col>
       </Row>
@@ -50,4 +50,4 @@ const Inicio = () => {
   );
 };
 
-export default Inicio;
+export default Seguimiento;

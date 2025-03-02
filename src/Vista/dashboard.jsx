@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
-import { useNavigate, Outlet } from "react-router-dom"; // Añadimos Outlet
+import { useNavigate, Outlet } from "react-router-dom";
 import BarraLateral from "./barraLateral";
 import "./Utils/Css/estilosBarraNav.css";
 import "./Utils/Css/estiloDashboard.css";
-import LogoAlcaldiaFondo from "./Utils/Images/cv-wall_proyecto_2.jpg";
+import LogoAlcaldiaFondo from "./Utils/Images/wall_w.png";
 
 function Dashboard() {
   const [plegado, setPlegado] = useState(false);
@@ -24,22 +24,42 @@ function Dashboard() {
         width: "100%",
         height: "100vh",
         backgroundImage: `url(${LogoAlcaldiaFondo})`,
-        backgroundSize: "cover",
+        backgroundSize: "1200px",
         backgroundRepeat: "repeat",
         backgroundPosition: "center",
         zIndex: 0,
+        animation: "moveBackground 100s linear infinite",
       }}
     >
+      {/* Animación CSS para el fondo y ajustes de scroll */}
+      <style>
+        {`
+          body, html {
+            margin: 0;
+            padding: 0;
+            position: relative;
+            overflow-y: auto; /* Permitir scroll vertical */
+          }
+        
+          @keyframes moveBackground {
+            from { background-position: 0 0; }
+            to { background-position: 500px 500px; } /* Mueve el fondo suavemente */
+          }
+        `}
+      </style>
 
       <Container fluid className="h-100">
         <Row className="h-100">
           {!plegado && (
-            <Col md={3} className="h-100">
+            <Col md={2} className="h-100">
               <BarraLateral setPlegado={setPlegado} />
             </Col>
           )}
-          <Col md={plegado ? 12 : 9} className="d-flex flex-column h-100">
-            {/* Área de contenido dinámico */}
+          <Col
+            md={plegado ? 12 : 9}
+            className="d-flex flex-column h-100"
+            style={{ overflowY: "auto" }} // Permitir scroll vertical en el contenido
+          >
             <div className="flex-grow-1 d-flex align-items-center justify-content-center">
               <div
                 style={{
@@ -51,7 +71,7 @@ function Dashboard() {
                   maxWidth: "1200px",
                 }}
               >
-                <Outlet /> {/* Renderiza las subrutas aquí */}
+                <Outlet />
               </div>
             </div>
           </Col>
