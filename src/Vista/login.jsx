@@ -36,15 +36,15 @@ const Login = () => {
      
         if (response.data.status ==="success") {
             setEsIncorrecto(false);
-            //setShowModal(true);
-            //setMensajeModal("Inicio de sesión exitoso 🎉 \n Accediendo al sistema...");
+
           console.log("Login exitoso");
           console.log("Usuario",usuario,"Contraseña",password);
           localStorage.setItem("token", response.data.access_token); //GUARDA EL TOKEN ANTES DE HACER EL REDIRECCIONAMIENTO//
+          localStorage.setItem("id_user", response.data.id_user); //SE GUARDA EL ID DEL USUARIO QUE ESTA HACIENDO LOGIN //
           setTimeout(() => {
             setLoading(false); // Mostrar spinner
             navigate("/dashboard");
-          }, 2500);
+          }, 2500); //SIMULA UNA PETICIÓN AL SERVIDOR PARA QUE SE VISUALICE EL SPINNER//
  
         }
         } 

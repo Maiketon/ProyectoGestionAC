@@ -4,8 +4,9 @@ from jose import JWTError, jwt
 from datetime import timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from Modelo.modelos import Usuario
+from Modelo.modeloLogin import Usuario
 from Controlador.auth import generar_token_jwt, ACCESS_TOKEN_EXPIRE_MINUTES
+from Controlador.crypto_utils import cifrar_dato, descifrar_dato
 
 
 
@@ -24,7 +25,7 @@ async def validar_usuario(usuario: str, password: str, db: AsyncSession):
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = generar_token_jwt({"sub": usuario}, access_token_expires)
 
-    return {"access_token": access_token, "token_type": "bearer", "status": "success"}
+    return {"access_token": access_token, "token_type": "bearer", "status": "success", "id_user": cifrar_dato(user.id_user)}
 
 def verificar_usuario_autenticado(token: str = Depends(oauth2_scheme)):
     try:
