@@ -339,25 +339,25 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
             <tr>
               <td>
                 <Form.Group controlId="copia1">
-      <Form.Label>Selecciona un área</Form.Label>
-      <Form.Select
-        name="copia1"
-        value={formData.copia1}
-        onChange={handleChange}
-        style={{ width: "100%", padding: "10px" }}
-      >
-        <option value="">Selecciona Área</option>
-        {areas.length > 0 ? (
-          areas.map((area) => (
-            <option key={area.id} value={area.id}>
-              {area.nombre}
-            </option>
-          ))
-        ) : (
-          <option disabled>Cargando áreas...</option>
-        )}
-      </Form.Select>
-    </Form.Group>
+                <Form.Label>Selecciona un área</Form.Label>
+                <Form.Select
+                  name="copia1"
+                  value={formData.copia1}
+                  onChange={handleChange}
+                  style={{ width: "100%", padding: "10px" }}
+                >
+                  <option value="">Selecciona Área</option>
+                  {areas.length > 0 ? (
+                    areas.map((area) => (
+                      <option key={area.id} value={area.id}>
+                        {area.nombre}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>Cargando áreas...</option>
+                  )}
+                </Form.Select>
+              </Form.Group>
               </td>
               {formData.copia1 && formData.copia1 !== "" && (
                 <td>
@@ -370,9 +370,15 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
                       style={getInputStyle("copia2")}
                     >
                       <option value="">Selecciona Área</option>
-                      <option value="Area1">Área 1</option>
-                      <option value="Area2">Área 2</option>
-                      <option value="Area3">Área 3</option>
+                      {areas.length > 0 ? (
+                    areas.map((area) => (
+                      <option key={area.id} value={area.id}>
+                        {area.nombre}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>Cargando áreas...</option>
+                  )}
                     </Form.Select>
                   </Form.Group>
                 </td>
@@ -390,9 +396,15 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
                       style={getInputStyle("copia3")}
                     >
                       <option value="">Selecciona Área</option>
-                      <option value="Area1">Área 1</option>
-                      <option value="Area2">Área 2</option>
-                      <option value="Area3">Área 3</option>
+                      {areas.length > 0 ? (
+                    areas.map((area) => (
+                      <option key={area.id} value={area.id}>
+                        {area.nombre}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>Cargando áreas...</option>
+                  )}
                     </Form.Select>
                   </Form.Group>
                 </td>
