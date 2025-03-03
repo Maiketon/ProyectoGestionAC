@@ -1,3 +1,9 @@
+/*
+
+Autor: Miguel Angel Montoya Bautista
+Fecha: 8-2-25
+Descripcioon: Componente modal de prueba/ejemplo
+*/
 import React from "react";
 import { Modal, Button } from "react-bootstrap";
 

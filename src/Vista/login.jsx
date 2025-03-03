@@ -1,3 +1,4 @@
+//COMPONENTE PRINCIPAL DE LOGIN//
 //DECLARACION DE LIBRERIAS Y HOOKS//
 import React, {useState,useEffect} from "react";
 import SpinnerComponent from '../SpinnerComponent';   // Lib para Spinner
@@ -19,8 +20,15 @@ const Login = () => {
     const [esIncorrecto, setEsIncorrecto] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
+/*
+Autor: Miguel Angel Montoya Bautista && Abraham Alvarado Gutierrez
+Fecha : 2/2/25
+Descripción: Funcion ligada al boton de "Login" la cual permite hacer la petición de validacion del usuario a la base de datos
+y guardar en almacenamiento local del browser un token de protección de rutas y id del usuario
+///////////////////////MODIFICACIONES//////////////////////////////////////
 
-  const handleSubmit = async (event) => {
+*/
+  const iniciarSesion = async (event) => {
     event.preventDefault();
     setLoading(true); // Mostrar spinner
     setTimeout(async () => {
@@ -31,8 +39,7 @@ const Login = () => {
           params: { usuario, password }
         } 
         );
-     
-        console.log("Respuesta del backend:", response);
+    
      
         if (response.data.status ==="success") {
             setEsIncorrecto(false);
@@ -59,7 +66,12 @@ const Login = () => {
         }, 2500); //Tiempo de espera en segs.
 };
 
-//Evitar el scroll a toda costa//
+
+/*
+Autor: Miguel Angel Montoya Bautista
+Fecha: 2-2-25
+Decripción: //Evitar el scroll a toda costa//
+*/
 useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -114,7 +126,7 @@ return (
           Iniciar Sesión
         </h2>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={iniciarSesion}>
           <div className="mb-3" >
             <label className="form-label">Usuario</label>
             <input

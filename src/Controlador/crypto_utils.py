@@ -1,3 +1,4 @@
+#Archivo donde se crean funciones para cifrar datos de salida
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.backends import default_backend
@@ -6,7 +7,8 @@ import os
 
 # Clave de cifrado de 32 bytes (256 bits) 
 SECRET_KEY = b'cifradorAlcaldia'
-
+# Autor: Miguel Angel Montoya Bautista
+# Fecha 2-3-25
 # Función para cifrar datos
 def cifrar_dato(dato: str) -> str:
     iv = os.urandom(16)  # Vector de inicialización aleatorio
@@ -22,6 +24,8 @@ def cifrar_dato(dato: str) -> str:
     # Retornamos en Base64 para facilitar el manejo en el frontend
     return base64.b64encode(iv + encrypted_data).decode()
 
+# Autor: Miguel Angel Montoya Bautista
+# Fecha 2-3-25
 # Función para descifrar datos
 def descifrar_dato(dato_cifrado: str) -> str:
     raw_data = base64.b64decode(dato_cifrado)

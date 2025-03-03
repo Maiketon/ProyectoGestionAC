@@ -1,5 +1,6 @@
 // src/Vista/recepcion.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Container, Row, Col, Form, Button, Table, Alert } from "react-bootstrap";
 
 const Recepcion = () => {
@@ -22,10 +23,38 @@ const Recepcion = () => {
     urgente: "No",
   });
 
+  //Logica para llenar un selector con información de la base de datos
+  /*
+  Autor: Miguel Angel Montoya Bautista
+  Fecha: 2-3-25
+  Descripcion: Se crea una nueva ariable para alojar el catalogo de las areas y posteriormente se hace una peticion get al back.
+  */
+  const [areas, setAreas] = useState([]);
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:8000/areas");
+        setAreas(response.data); // Guardamos las áreas en el estado
+      } catch (error) {
+        console.error("Error al obtener las áreas:", error);
+      }
+    };
+
+    fetchAreas();
+  }, []);
+
+
+
+
   const [pdfFile, setPdfFile] = useState(null);
   const [error, setError] = useState(""); // Mensaje de error general
   const [fieldErrors, setFieldErrors] = useState({}); // Estado para rastrear errores por campo
 
+  /*
+  Autor: Abraham Alvarado Gutierrez
+  Fecha: 2-3-25
+  Descripcion: Funcion que cambia el valor de cada campo, en cuanto se efectua un cambio (actualizar valor al cambio)
+  */
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "pdf") {
@@ -43,8 +72,12 @@ const Recepcion = () => {
       }
     }
   };
-
-  const validateForm = () => {
+/*
+Autor: Abraham Avarado Gutierrez
+Fecha: 2-3-25
+Descripción:Valida que el formulario de recepción, no tenga campos incompletos
+*/
+  const validarCampos = () => {
     const defaultSelectValue = ""; // Valor predeterminado para selectores (Selecciona Área)
     const defaultBooleanValue = "No"; // Valor predeterminado para Leyenda y Urgente
     const errors = {};
@@ -131,11 +164,11 @@ const Recepcion = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validateForm()) {
+    if (validarCampos()) {
       return; // No envía el formulario si hay errores
     }
     console.log("Formulario enviado:", formData);
-    // Aquí puedes agregar la lógica para enviar los datos (por ejemplo, a una API)
+
   };
 
   // Estilo condicional para campos con errores
@@ -306,19 +339,25 @@ const Recepcion = () => {
             <tr>
               <td>
                 <Form.Group controlId="copia1">
-                  <Form.Label>Copia 1 para:</Form.Label>
-                  <Form.Select
-                    name="copia1"
-                    value={formData.copia1}
-                    onChange={handleChange}
-                    style={getInputStyle("copia1")}
-                  >
-                    <option value="">Selecciona Área</option>
-                    <option value="Area1">Área 1</option>
-                    <option value="Area2">Área 2</option>
-                    <option value="Area3">Área 3</option>
-                  </Form.Select>
-                </Form.Group>
+      <Form.Label>Selecciona un área</Form.Label>
+      <Form.Select
+        name="copia1"
+        value={formData.copia1}
+        onChange={handleChange}
+        style={{ width: "100%", padding: "10px" }}
+      >
+        <option value="">Selecciona Área</option>
+        {areas.length > 0 ? (
+          areas.map((area) => (
+            <option key={area.id} value={area.id}>
+              {area.nombre}
+            </option>
+          ))
+        ) : (
+          <option disabled>Cargando áreas...</option>
+        )}
+      </Form.Select>
+    </Form.Group>
               </td>
               {formData.copia1 && formData.copia1 !== "" && (
                 <td>
