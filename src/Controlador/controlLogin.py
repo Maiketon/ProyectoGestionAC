@@ -3,8 +3,10 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from datetime import timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 from Modelo.modeloLogin import Usuario
+from Modelo.database import get_db
+
+
 from Controlador.auth import generar_token_jwt, ACCESS_TOKEN_EXPIRE_MINUTES
 from Controlador.crypto_utils import cifrar_dato
 
@@ -17,7 +19,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 # Autor : Miguel Angel Montoya Bautista
 # Fecha : 8-2-25
 # Descripcion: Valida que el usuario exista en la base de datos y genera un token para la protección de rutas, cifra el ID
-async def validar_usuario(usuario: str, password: str, db: AsyncSession):
+"""async def validar_usuario(usuario: str, password: str, db: AsyncSession):
     result = await db.execute(select(Usuario).where(Usuario.usr == usuario))
     user = result.scalars().first()
     
@@ -27,7 +29,30 @@ async def validar_usuario(usuario: str, password: str, db: AsyncSession):
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = generar_token_jwt({"sub": usuario}, access_token_expires)
 
-    return {"access_token": access_token, "token_type": "bearer", "status": "success", "id_user": cifrar_dato(user.id_user)}
+    return {"access_token": access_token, "token_type": "bearer", "status": "success", "id_user": cifrar_dato(user.id_user)}"""
+
+
+
+async def validar_usuario(usuario: str, password: str, db: AsyncSession = Depends(get_db)):
+
+    # Validar credenciales usando el método del modelo
+    user = await Usuario.validar_credenciales(usuario, password, db)
+
+    # Generar el token JWT
+    ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Duración del token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = generar_token_jwt({"sub": usuario}, access_token_expires)
+
+    # Retornar la respuesta con el token y el ID del usuario cifrado
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "status": "success",
+        "id_user": cifrar_dato(user.id_user),
+    }
+
+
+
 
 # Autor : Miguel Angel Montoya Bautista
 # Fecha : 8-2-25

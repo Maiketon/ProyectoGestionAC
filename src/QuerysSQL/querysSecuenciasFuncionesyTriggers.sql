@@ -78,9 +78,22 @@ EXECUTE FUNCTION asignar_userinfo_a_usuario();
 
 
 
--- RESETEAR SECUENCIAS SI ES NECESARIO ---
+-- RESETEAR SECUENCIAS SI ES NECESARIO  TOMAR COMO EJEMPLO---
 ALTER SEQUENCE usuarios_datos_id_usuario_dts_seq RESTART WITH 1;
 SELECT setval('public.usuarios_id_user_seq',(SELECT MAX(id_user) FROM public.usuarios));
 TRUNCATE TABLE public.usuarios RESTART IDENTITY;
 
 
+
+
+
+--- 9/3/25 ---
+-- CREA LA SECUENCIA PARA EL PK DE RECIBOS--
+CREATE SEQUENCE IF NOT EXISTS public.recibos_id_recibos_seq;
+
+-- MODIFCA LA COLUMNA DEL PK DE RECIBOS--
+ALTER TABLE public.recibos
+ALTER COLUMN id_recibos SET DEFAULT nextval('public.recibos_id_recibos_seq');
+
+-- SI EXISTEN REGISTROS EN LA TABLE TOMA SU VALOR Y APARTIR DE AHI LO HACE AUTOINCREMENTAL
+SELECT setval('recibos_id_recibos_seq', (SELECT MAX(id_recibos) FROM recibos));
