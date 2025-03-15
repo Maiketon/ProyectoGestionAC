@@ -15,6 +15,7 @@ function BarraLateral({ setPlegado }) {
   const handleLogout = (e) => {
     e.preventDefault();
     localStorage.removeItem("token");
+    localStorage.removeItem("id_user");
     window.dispatchEvent(new Event("storage"));
     navigate("/");
   };

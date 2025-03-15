@@ -6,4 +6,4 @@ async def catalogoAreas(db: AsyncSession):
     query = select(CatalogoAreas)
     result = await db.execute(query)
     areas = result.scalars().all()
-    return [{"id": cifrar_dato(str(area.id_areas)), "nombre": area.nombre} for area in areas]
+    return [{"id":str(cifrar_dato(area.id_areas)), "nombre": area.nombre} for area in areas]

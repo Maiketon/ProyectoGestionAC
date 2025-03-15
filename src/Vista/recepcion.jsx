@@ -19,8 +19,8 @@ const Recepcion = () => {
     copia2: "",
     copia3: "",
     pdf: null,
-    leyenda: "No",
-    urgente: "No",
+    leyenda: "",
+    urgente: "",
   });
 
   //Logica para llenar un selector con información de la base de datos
@@ -176,6 +176,76 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
     borderColor: fieldErrors[fieldName] ? "red" : "#007bff",
   });
 
+
+// Autor : Miguel Angel Montoya Bautista
+// Fecha : 15-3-25
+// Descripcion: Función que hace la petición post para subir el archivo al servidor y posteriormente retornar el nombre del archivo
+//FALTA AGREGAR LA LOGICA DE COMO SE MANEJARA EL NOMBRE DEL ARCHIVO : recibo_YY-MM-DD_00000
+  const subirArchivo = async (archivo) => {
+    try {
+        const formPdf = new FormData();
+        formPdf.append("pdf", archivo);
+
+        const response = await axios.post("http://127.0.0.1:8000/subirArchivo", formPdf, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        return response.data.nombre_archivo; // Devuelve el nombre del archivo
+    } catch (error) {
+        console.error("Error al subir el archivo:", error);
+        throw error;
+    }
+};
+
+  // Autor : Miguel Angel Montoya Bautista
+// Fecha : 9-3-25
+// Descripcion: Función que hace la petición post para insertar y guardar un nuevo recibo como en base de datos
+const enviarRecibo = async (e) => {
+  e.preventDefault();
+  const idUsuario = localStorage.getItem("id_user");
+
+  if (!idUsuario) {
+    console.error("ID de usuario no encontrado en localStorage");
+    alert("Usuario no autenticado");
+    return;
+  }
+
+  try {
+    // Subir el archivo primero
+    const nombreArchivo = await subirArchivo(formData.pdf);
+
+    // Crear un objeto con los datos del formulario
+    const datosParaEnviar = {
+      ...formData,
+      nombre_archivo: nombreArchivo,
+      fk_usuario_registra: idUsuario,
+    };
+
+    // Enviar los datos del formulario como JSON
+    console.log("Enviando al back el formulario:", datosParaEnviar);
+    /*const response = await axios.post("http://127.0.0.1:8000/registrarRecibo", datosParaEnviar, {
+      headers: {
+        "Content-Type": "application/json", // Enviar como JSON
+      },
+    });*/
+    const { pdf, ...datosSinPdf } = datosParaEnviar;
+
+const response = await axios.post("http://127.0.0.1:8000/registrarRecibo", datosSinPdf, {
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+    
+
+    console.log("Respuesta del servidor:", response.data);
+    alert("Recibo insertado correctamente");
+  } catch (error) {
+    console.error("Error al enviar el recibo:", error);
+    alert("Error al enviar el recibo");
+  }
+};
   return (
     <Container className="py-4">
       <Row className="mb-4">
@@ -186,7 +256,7 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
         </Col>
       </Row>
 
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={enviarRecibo}>
         {error && (
           <Row className="mb-3">
             <Col>
@@ -314,9 +384,9 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
                     style={getInputStyle("atencion")}
                   >
                     <option value="">Selecciona Área</option>
-                    <option value="Area1">Área 1</option>
-                    <option value="Area2">Área 2</option>
-                    <option value="Area3">Área 3</option>
+                    <option value="1">Área 1</option>
+                    <option value="2">Área 2</option>
+                    <option value="3">Área 3</option>
                   </Form.Select>
                 </Form.Group>
               </td>
@@ -339,7 +409,7 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
             <tr>
               <td>
                 <Form.Group controlId="copia1">
-                <Form.Label>Selecciona un área</Form.Label>
+                <Form.Label>Seleccione copia para el areá</Form.Label>
                 <Form.Select
                   name="copia1"
                   value={formData.copia1}
@@ -451,8 +521,8 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
                       style={getInputStyle("urgente")}
                     >
                       <option value="">Selecciona...</option>
-                      <option value="Sí">Sí</option>
-                      <option value="No">Extra</option>
+                      <option value="1">Sí</option>
+                      <option value="2">Extra</option>
                     </Form.Select>
                   </Form.Group>
                 </td>
