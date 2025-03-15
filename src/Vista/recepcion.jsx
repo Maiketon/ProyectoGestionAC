@@ -23,6 +23,10 @@ const Recepcion = () => {
     urgente: "",
   });
 
+  const [pdfFile, setPdfFile] = useState(null);
+  const [error, setError] = useState(""); // Mensaje de error general
+  const [fieldErrors, setFieldErrors] = useState({}); // Estado para rastrear errores por campo
+
   //Logica para llenar un selector con información de la base de datos
   /*
   Autor: Miguel Angel Montoya Bautista
@@ -33,36 +37,70 @@ const Recepcion = () => {
   useEffect(() => {
     const fetchAreas = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/areas");
+        const response = await axios.get("http://127.0.0.1:8000/areas", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         setAreas(response.data); // Guardamos las áreas en el estado
       } catch (error) {
         console.error("Error al obtener las áreas:", error);
+        setError("No se pudieron cargar las áreas. Intenta de nuevo.");
       }
     };
 
     fetchAreas();
   }, []);
 
-
-
-
-  const [pdfFile, setPdfFile] = useState(null);
-  const [error, setError] = useState(""); // Mensaje de error general
-  const [fieldErrors, setFieldErrors] = useState({}); // Estado para rastrear errores por campo
-
   /*
   Autor: Abraham Alvarado Gutierrez
   Fecha: 2-3-25
   Descripcion: Funcion que cambia el valor de cada campo, en cuanto se efectua un cambio (actualizar valor al cambio)
   */
+  // Manejar cambios en los campos del formulario - Actualiza el estado formData - Actualiza el estado fieldErrors
+  // Fecha: 15-3-25
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "pdf") {
-      setPdfFile(files[0]);
-      setFormData({ ...formData, pdf: files[0] });
-      // Limpiar error si se sube un archivo válido
-      if (fieldErrors.pdf) {
-        setFieldErrors({ ...fieldErrors, pdf: false });
+      const file = files[0];
+      // Validar tipo de archivo (solo PDF) y tamaño (máximo 5MB)
+      if (file) {
+        // Validar que sea un PDF
+        if (!file.type.includes("application/pdf")) {
+          setError("El archivo debe ser un PDF.");
+          setFieldErrors({ ...fieldErrors, pdf: true });
+          setPdfFile(null);
+          setFormData({ ...formData, pdf: null });
+          return;
+        }
+        // Validar tamaño (máximo 5MB)
+        const maxSizeInBytes = 5 * 1024 * 1024; // 5MB en bytes
+        if (file.size > maxSizeInBytes) {
+          setError("El archivo no debe exceder 5MB.");
+          setFieldErrors({ ...fieldErrors, pdf: true });
+          setPdfFile(null);
+          setFormData({ ...formData, pdf: null });
+          return;
+        }
+        // Si pasa las validaciones, actualizamos el estado
+        setPdfFile(file);
+        setFormData({ ...formData, pdf: file });
+
+        // Limpiar errores si existen
+        if (fieldErrors.pdf) {
+          setFieldErrors({ ...fieldErrors, pdf: false });
+          setError("");
+        }
+
+      } else {
+        // Si no se selecciona ningún archivo, limpiamos el estado
+        setPdfFile(null);
+        setFormData({ ...formData, pdf: null });
+        if (fieldErrors.pdf) {
+          setFieldErrors({ ...fieldErrors, pdf: false });
+          setError("");
+        }
       }
     } else {
       setFormData({ ...formData, [name]: value });
@@ -72,6 +110,7 @@ const Recepcion = () => {
       }
     }
   };
+
 /*
 Autor: Abraham Avarado Gutierrez
 Fecha: 2-3-25
@@ -98,61 +137,64 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
 
     // Verificar Copia 1 (si está seleccionado, debe ser diferente a "Selecciona Área")
     if (formData.copia1 === defaultSelectValue) {
-      // Si Copia 1 está en "Selecciona Área", no hay problema (es opcional)
       setFormData({ ...formData, copia2: "", copia3: "" }); // Resetear Copia 2 y 3 si Copia 1 está vacío
-    } else {
-      // No validamos Copia 2 ni Copia 3 como obligatorios, pero los mantenemos si existen
     }
 
     // Verificar Leyenda (siempre obligatorio, no puede ser vacío, pero ya tiene valor por defecto "No")
     if (formData.leyenda === defaultBooleanValue) {
-      // Si Leyenda es "No", Urgente no debe existir o debe ser "No" (pero es opcional)
       if (formData.urgente && formData.urgente !== "No") {
         errors.urgente = true;
       }
-    } else if (formData.leyenda === "Sí") {
-      // Si Leyenda es "Sí", Urgente es opcional (puede estar vacío o con valor)
-      // No validamos Urgente como obligatorio, pero mantenemos la relación
     }
 
-    // Verificar PDF (opcional, pero si se sube, debe ser un PDF)
-    if (pdfFile && !pdfFile.type.includes("application/pdf")) {
-      errors.pdf = true;
+    // Verificar PDF (opcional, pero si se sube, debe ser un PDF y no exceder 5MB)
+    if (pdfFile) {
+      if (!pdfFile.type.includes("application/pdf")) {
+        errors.pdf = true;
+      }
+      const maxSizeInBytes = 5 * 1024 * 1024; // 5MB en bytes
+      if (pdfFile.size > maxSizeInBytes) {
+        errors.pdf = true;
+      }
     }
 
     // Si hay errores, actualizar fieldErrors y mostrar mensaje
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      const errorMessage = Object.keys(errors).map((key) => {
-        switch (key) {
-          case "volante":
-            return "El campo Volante es obligatorio.";
-          case "fecha":
-            return "El campo Fecha es obligatorio.";
-          case "referencia":
-            return "El campo Referencia es obligatorio.";
-          case "cargo":
-            return "El campo Cargo es obligatorio.";
-          case "remitente":
-            return "El campo Remitente es obligatorio.";
-          case "procedencia":
-            return "El campo Procedencia es obligatorio.";
-          case "fechaOficio":
-            return "El campo Fecha y No. de Oficio es obligatorio.";
-          case "indicacion":
-            return "El campo Indicación es obligatorio.";
-          case "asunto":
-            return "El campo Asunto es obligatorio.";
-          case "atencion":
-            return "Debes seleccionar un área en el campo Atención.";
-          case "urgente":
-            return "El campo Urgente debe ser 'No' cuando Leyenda es 'No'.";
-          case "pdf":
-            return "El archivo subido debe ser un PDF.";
-          default:
-            return "";
-        }
-      }).join(" ");
+      const errorMessage = Object.keys(errors)
+        .map((key) => {
+          switch (key) {
+            case "volante":
+              return "El campo Volante es obligatorio.";
+            case "fecha":
+              return "El campo Fecha es obligatorio.";
+            case "referencia":
+              return "El campo Referencia es obligatorio.";
+            case "cargo":
+              return "El campo Cargo es obligatorio.";
+            case "remitente":
+              return "El campo Remitente es obligatorio.";
+            case "procedencia":
+              return "El campo Procedencia es obligatorio.";
+            case "fechaOficio":
+              return "El campo Fecha y No. de Oficio es obligatorio.";
+            case "indicacion":
+              return "El campo Indicación es obligatorio.";
+            case "asunto":
+              return "El campo Asunto es obligatorio.";
+            case "atencion":
+              return "Debes seleccionar un área en el campo Atención.";
+            case "urgente":
+              return "El campo Urgente debe ser 'No' cuando Leyenda es 'No'.";
+            case "pdf":
+              return pdfFile && !pdfFile.type.includes("application/pdf")
+                ? "El archivo subido debe ser un PDF."
+                : "El archivo no debe exceder 5MB.";
+            default:
+              return "";
+          }
+        })
+        .join(" ");
       setError(errorMessage);
       return true; // Indica que hay errores
     }
@@ -162,13 +204,67 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
     return false; // No hay errores
   };
 
-  const handleSubmit = (e) => {
+  // Enviar el formulario al backend
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validarCampos()) {
       return; // No envía el formulario si hay errores
     }
-    console.log("Formulario enviado:", formData);
 
+    // Crear un FormData para enviar los datos y el archivo al backend
+    const data = new FormData();
+    data.append("volante", formData.volante);
+    data.append("fecha", formData.fecha);
+    data.append("referencia", formData.referencia);
+    data.append("cargo", formData.cargo);
+    data.append("remitente", formData.remitente);
+    data.append("procedencia", formData.procedencia);
+    data.append("fechaOficio", formData.fechaOficio);
+    data.append("indicacion", formData.indicacion);
+    data.append("atencion", formData.atencion);
+    data.append("asunto", formData.asunto);
+    data.append("copia1", formData.copia1);
+    data.append("copia2", formData.copia2);
+    data.append("copia3", formData.copia3);
+    data.append("leyenda", formData.leyenda);
+    data.append("urgente", formData.urgente);
+    if (pdfFile) {
+      data.append("pdf", pdfFile);
+    }
+
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/recepcion", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      console.log("Formulario enviado exitosamente:", response.data);
+      setError(""); // Limpiar errores
+      // Resetear el formulario después de enviar
+      setFormData({
+        volante: "",
+        fecha: "",
+        referencia: "",
+        cargo: "",
+        remitente: "",
+        procedencia: "",
+        fechaOficio: "",
+        indicacion: "",
+        atencion: "",
+        asunto: "",
+        copia1: "",
+        copia2: "",
+        copia3: "",
+        pdf: null,
+        leyenda: "No",
+        urgente: "No",
+      });
+      setPdfFile(null);
+    } catch (error) {
+      console.error("Error al enviar el formulario:", error);
+      setError("Error al enviar el formulario. Intenta de nuevo.");
+    }
   };
 
   // Estilo condicional para campos con errores
@@ -505,12 +601,12 @@ const response = await axios.post("http://127.0.0.1:8000/registrarRecibo", datos
                     onChange={handleChange}
                     style={getInputStyle("leyenda")}
                   >
-                    <option value="No">No</option>
-                    <option value="Sí">Sí</option>
+                    <option value="1">No</option>
+                    <option value="2">Sí</option>
                   </Form.Select>
                 </Form.Group>
               </td>
-              {formData.leyenda === "Sí" && (
+              {formData.leyenda === "2" && (
                 <td>
                   <Form.Group controlId="urgente">
                     <Form.Label>Urgente:</Form.Label>
