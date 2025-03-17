@@ -5,7 +5,6 @@ import { Container, Row, Col, Form, Button, Table, Alert } from "react-bootstrap
 
 const Recepcion = () => {
   const [formData, setFormData] = useState({
-    volante: "",
     fecha: "",
     referencia: "",
     cargo: "",
@@ -62,23 +61,9 @@ const Recepcion = () => {
    // Autor: Abraham Alvarado Gutierrez
    // Manejar cambios en los campos del formulario - Actualiza el estado formData - Actualiza el estado fieldErrors
    // Ajuste a la función original para validar el campo Volante (solo números)
+   // Se quita el campo "Volante" del front
    // Fecha: 15-3-25
-    if (name === "volante") {
-      // Validar que solo contenga números
-      const isNumeric = /^\d*$/.test(value);
-      if (!isNumeric) {
-        setError("El campo Volante solo puede contener números.");
-        setFieldErrors({ ...fieldErrors, volante: true });
-        return; // No actualizamos el estado si no es numérico
-      }
-      // Si pasa la validación, actualizamos el estado
-      setFormData({ ...formData, volante: value });
-      // Limpiar error si el campo se corrige
-      if (fieldErrors.volante) {
-        setFieldErrors({ ...fieldErrors, volante: false });
-        setError("");
-      }
-    } else if (name === "pdf") {
+      if (name === "pdf") {
       const file = files[0];
       // Validar tipo de archivo (solo PDF) y tamaño (máximo 5MB)
       if (file) {
@@ -138,12 +123,6 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
     const errors = {};
 
     // Verificar campos de texto (no pueden estar vacíos)
-    if (!formData.volante.trim()) {
-      errors.volante = true;
-    } else if (!/^\d+$/.test(formData.volante)) {
-      // Validar que solo contenga números
-      errors.volante = true;
-    }
     if (!formData.fecha.trim()) errors.fecha = true;
     if (!formData.referencia.trim()) errors.referencia = true;
     if (!formData.cargo.trim()) errors.cargo = true;
@@ -186,10 +165,6 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
       const errorMessage = Object.keys(errors)
         .map((key) => {
           switch (key) {
-            case "volante":
-              return formData.volante.trim() === ""
-                ? "El campo Volante es obligatorio."
-                : "El campo Volante solo puede contener números.";
             case "fecha":
               return "El campo Fecha es obligatorio.";
             case "referencia":
@@ -237,7 +212,6 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
 
     // Crear un FormData para enviar los datos y el archivo al backend
     const data = new FormData();
-    data.append("volante", formData.volante);
     data.append("fecha", formData.fecha);
     data.append("referencia", formData.referencia);
     data.append("cargo", formData.cargo);
@@ -267,7 +241,6 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
       setError(""); // Limpiar errores
       // Resetear el formulario después de enviar
       setFormData({
-        volante: "",
         fecha: "",
         referencia: "",
         cargo: "",
@@ -370,7 +343,6 @@ const enviarRecibo = async (e) => {
 
     // Resetear el formulario después de enviar
     setFormData({
-      volante: "",
       fecha: "",
       referencia: "",
       cargo: "",
@@ -416,20 +388,7 @@ const enviarRecibo = async (e) => {
         <Table  style={{ backgroundColor: "white" }}>
           <tbody>
             <tr>
-              <td style={{ width: "50%" }}>
-              <Form.Group controlId="volante">
-                  <Form.Label>Volante:</Form.Label>
-                  <Form.Control
-                    type="text" // Podríamos usar type="number", pero lo manejamos manualmente para mejor control
-                    name="volante"
-                    value={formData.volante}
-                    onChange={handleChange}
-                    style={getInputStyle("volante")}
-                    placeholder="Ingrese solo números"
-                  />
-                </Form.Group>
-              </td>
-              <td>
+                <td style={{ width: "50%" }}>
                 <Form.Group controlId="fecha">
                   <Form.Label>Fecha:</Form.Label>
                   <Form.Control
@@ -441,8 +400,6 @@ const enviarRecibo = async (e) => {
                   />
                 </Form.Group>
               </td>
-            </tr>
-            <tr>
               <td>
                 <Form.Group controlId="referencia">
                   <Form.Label>Referencia:</Form.Label>
@@ -451,10 +408,13 @@ const enviarRecibo = async (e) => {
                     name="referencia"
                     value={formData.referencia}
                     onChange={handleChange}
+                    placeholder="Ingrese la referencia"
                     style={getInputStyle("referencia")}
                   />
                 </Form.Group>
               </td>
+            </tr>
+            <tr>
               <td>
                 <Form.Group controlId="cargo">
                   <Form.Label>Cargo:</Form.Label>
@@ -463,12 +423,11 @@ const enviarRecibo = async (e) => {
                     name="cargo"
                     value={formData.cargo}
                     onChange={handleChange}
+                    placeholder="Ingrese el cargo"
                     style={getInputStyle("cargo")}
                   />
                 </Form.Group>
               </td>
-            </tr>
-            <tr>
               <td>
                 <Form.Group controlId="remitente">
                   <Form.Label>Remitente:</Form.Label>
@@ -477,11 +436,14 @@ const enviarRecibo = async (e) => {
                     name="remitente"
                     value={formData.remitente}
                     onChange={handleChange}
+                    placeholder="Ingrese el remitente"
                     style={getInputStyle("remitente")}
                   />
                 </Form.Group>
               </td>
-              <td>
+              </tr>
+            <tr>
+              <td colSpan={2}>
                 <Form.Group controlId="procedencia">
                   <Form.Label>Procedencia:</Form.Label>
                   <Form.Control
@@ -489,6 +451,7 @@ const enviarRecibo = async (e) => {
                     name="procedencia"
                     value={formData.procedencia}
                     onChange={handleChange}
+                    placeholder="Ingrese la procedencia"
                     style={getInputStyle("procedencia")}
                   />
                 </Form.Group>
@@ -503,6 +466,7 @@ const enviarRecibo = async (e) => {
                     name="fechaOficio"
                     value={formData.fechaOficio}
                     onChange={handleChange}
+                    placeholder="Ingrese el No. de Oficio"
                     style={getInputStyle("fechaOficio")}
                   />
                 </Form.Group>
@@ -517,6 +481,7 @@ const enviarRecibo = async (e) => {
                     name="indicacion"
                     value={formData.indicacion}
                     onChange={handleChange}
+                    placeholder="Ingrese la indicación"
                     style={getInputStyle("indicacion")}
                   />
                 </Form.Group>
@@ -556,6 +521,7 @@ const enviarRecibo = async (e) => {
                     name="asunto"
                     value={formData.asunto}
                     onChange={handleChange}
+                    placeholder="Ingrese el asunto"
                     style={getInputStyle("asunto")}
                   />
                 </Form.Group>
@@ -660,13 +626,12 @@ const enviarRecibo = async (e) => {
                     onChange={handleChange}
                     style={getInputStyle("leyenda")}
                   >
-                    <option value="1">No</option>
-                    <option value="2">Sí</option>
+                    <option value="1">Sí</option>
+                    <option value="2">No</option>
                   </Form.Select>
                 </Form.Group>
               </td>
-              {formData.leyenda === "2" && (
-                <td>
+              <td>
                   <Form.Group controlId="urgente">
                     <Form.Label>Urgente:</Form.Label>
                     <Form.Select
@@ -675,14 +640,13 @@ const enviarRecibo = async (e) => {
                       onChange={handleChange}
                       style={getInputStyle("urgente")}
                     >
-                      <option value="">Selecciona...</option>
-                      <option value="1">Sí</option>
-                      <option value="2">Extra</option>
+                      <option value="1">No</option>
+                      <option value="2">Sí</option>
+                      <option value="3">Extra</option>
                     </Form.Select>
                   </Form.Group>
                 </td>
-              )}
-            </tr>
+              </tr>
             <tr>
               <td colSpan={2} className="text-center">
                 <Button variant="primary" type="submit" className="mt-3">
