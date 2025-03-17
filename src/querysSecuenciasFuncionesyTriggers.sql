@@ -92,3 +92,16 @@ TRUNCATE TABLE public.usuarios RESTART IDENTITY;
 ALTER TABLE public.usuarios
 ADD CONSTRAINT unico_usuarionick UNIQUE (usr);
 
+ALTER TABLE public.nombre_archivos
+ADD CONSTRAINT unico_nombrearchivo UNIQUE (id_nombre_archivo)
+--- Hacemos autoincremental el nombre de los archivos de la tabla nombre_archivos ---
+
+
+CREATE SEQUENCE nombre_archivos_id_nombrea_seq START 1;
+ALTER TABLE public.nombre_archivos 
+ALTER COLUMN id_nombre_archivo SET DEFAULT nextval('nombre_archivos_id_nombrea_seq');
+
+
+ALTER TABLE public.nombre_archivos
+ALTER COLUMN id_nombre_archivo
+SET DEFAULT nextval ('nombre_archivos_id_nombrea_seq');

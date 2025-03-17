@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,File, UploadFile
+from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from Modelo.database import get_db
 #LIBRERIAS PARA LOS ARCHIVOS
-from fastapi import APIRouter, File, UploadFile, HTTPException
-import os
-import shutil
 #CONTROLADORES
 from Controlador.controlLogin import validar_usuario
 from Controlador.controlRecepcionModificar import enviarDatosRecibo
+from Controlador.controlFiles import guardar_archivo
 
 from Controlador.controlCatalogos import catalogoAreas
 #ARCHIVO DE RUTAS DE MAPEO DE LOS ENPOINTS
@@ -38,18 +37,8 @@ async def get_areas(db:AsyncSession = Depends(get_db)):
 
 #endpoint para subir archivos al servidor desde el formulario de recepcion
 @router.post("/subirArchivo")
-async def subir_archivo(pdf: UploadFile = File(...)):
-    try:
-        # Crear la carpeta "uploads" si no existe
-        if not os.path.exists("recibosPrueba"):
-            os.makedirs("recibosPrueba")
-
-        # Guardar el archivo en la carpeta "uploads"
-        file_path = f"recibosPrueba/{pdf.filename}"
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(pdf.file, buffer)
-
-        # Devolver el nombre del archivo
-        return {"nombre_archivo": pdf.filename}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al subir el archivo: {str(e)}")
+async def subir_archivo(
+    pdf: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),  # Inyecta la sesión asíncrona
+):
+    return await guardar_archivo(pdf, db)  # Llama al controlador de manera asíncrona

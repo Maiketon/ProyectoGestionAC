@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String, Date, select, extract
+from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from Modelo.database import Base
@@ -62,3 +63,69 @@ class Recibo(Base):
             await db.rollback()  # Revertir la transacción en caso de error
             logger.error("Error al insertar el recibo: %s", str(e), exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error al insertar el recibo: {str(e)}")
+        
+
+
+class validarNombreArchivo(Base):
+    __tablename__ = "nombre_archivos"
+    __table_args__ = {"schema": "public"}
+    id_nombre_archivo = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    nombre_del_archivo = Column(String, nullable=False)
+    fecha_insercion = Column(Date, nullable=False)
+
+    @staticmethod
+    async def hay_registros_mes_actual(db: AsyncSession, fecha_actual: datetime) -> bool:
+        """
+        Verifica si hay registros en la tabla para el año y mes actual.
+        """
+        año_actual = fecha_actual.year
+        mes_actual = fecha_actual.month
+
+        query = (
+            select(validarNombreArchivo)
+            .where(
+                extract("year", validarNombreArchivo.fecha_insercion) == año_actual,
+                extract("month", validarNombreArchivo.fecha_insercion) == mes_actual,
+            )
+        )
+        resultado = await db.execute(query)
+        return resultado.scalar() is not None
+
+    @staticmethod
+    async def obtener_ultimo_incremento(db: AsyncSession, fecha_actual: datetime) -> int:
+        """
+        Obtiene el último incremento del nombre del archivo para el mes actual.
+        """
+        año_actual = fecha_actual.year
+        mes_actual = fecha_actual.month
+
+        query = (
+            select(validarNombreArchivo)
+            .where(
+                extract("year", validarNombreArchivo.fecha_insercion) == año_actual,
+                extract("month", validarNombreArchivo.fecha_insercion) == mes_actual,
+            )
+            .order_by(validarNombreArchivo.id_nombre_archivo.desc())
+        )
+        resultado = await db.execute(query)
+        ultimo_registro = resultado.scalars().first()
+
+        if ultimo_registro:
+            incremento = int(ultimo_registro.nombre_del_archivo.split("_")[-1])
+            return incremento
+        else:
+            return 0
+
+    @staticmethod
+    async def crear_registro(db: AsyncSession, nombre_archivo: str, fecha_insercion: datetime):
+        """
+        Crea un nuevo registro en la tabla.
+        """
+        nuevo_registro = validarNombreArchivo(
+            nombre_del_archivo=nombre_archivo,
+            fecha_insercion=fecha_insercion.date(),
+        )
+        db.add(nuevo_registro)
+        await db.commit()
+        await db.refresh(nuevo_registro)
+        return nuevo_registro
