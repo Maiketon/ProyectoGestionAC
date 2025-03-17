@@ -93,9 +93,6 @@ class validarNombreArchivo(Base):
 
     @staticmethod
     async def obtener_ultimo_incremento(db: AsyncSession, fecha_actual: datetime) -> int:
-        """
-        Obtiene el último incremento del nombre del archivo para el mes actual.
-        """
         año_actual = fecha_actual.year
         mes_actual = fecha_actual.month
 
@@ -111,7 +108,8 @@ class validarNombreArchivo(Base):
         ultimo_registro = resultado.scalars().first()
 
         if ultimo_registro:
-            incremento = int(ultimo_registro.nombre_del_archivo.split("_")[-1])
+            # Extraer el incremento del nombre del archivo
+            incremento = int(ultimo_registro.nombre_del_archivo.split("_")[-1].split(".")[0])
             return incremento
         else:
             return 0

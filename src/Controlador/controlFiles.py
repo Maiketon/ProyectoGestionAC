@@ -6,14 +6,13 @@ import shutil
 from Modelo.database import get_db
 from Modelo.modeloRecepcionModificar import validarNombreArchivo
 
-async def guardar_archivo(pdf: UploadFile, db: AsyncSession = Depends(get_db)) -> dict:
+async def guardar_archivo(pdf: UploadFile, db: AsyncSession) -> dict:
     try:
         # Obtener la fecha actual
         fecha_actual = datetime.now()
 
         # Validar si hay registros en la tabla para el mes actual
         if not await validarNombreArchivo.hay_registros_mes_actual(db, fecha_actual):
-            # No hay registros, empezar con el incremento 00001
             nuevo_incremento = 1
         else:
             # Obtener el último incremento para el mes actual
@@ -33,9 +32,14 @@ async def guardar_archivo(pdf: UploadFile, db: AsyncSession = Depends(get_db)) -
             shutil.copyfileobj(pdf.file, buffer)
 
         # Insertar el nuevo registro en la base de datos
-        await validarNombreArchivo.crear_registro(db, nombre_archivo, fecha_actual)
+        nuevo_registro = validarNombreArchivo(
+            nombre_del_archivo=nombre_archivo,
+            fecha_insercion=fecha_actual.date(),
+        )
+        db.add(nuevo_registro)
+        await db.commit()  # ¡Importante! Hacer commit después de la inserción.
+        await db.refresh(nuevo_registro)
 
-        # Devolver el nombre del archivo
         return {"nombre_archivo": nombre_archivo}
     except Exception as e:
         await db.rollback()  # Revertir la transacción en caso de error
