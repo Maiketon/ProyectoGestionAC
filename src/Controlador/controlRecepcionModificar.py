@@ -20,7 +20,6 @@ async def enviarDatosRecibo(datosForm: dict, db: AsyncSession = Depends(get_db))
 
         # Mapear los datos correctamente
         datos_mapeados = {
-            "volante": int(datosForm["volante"]) if datosForm["volante"].isdigit() else None,
             "fecha_recibido": datetime.strptime(datosForm["fecha"], "%Y-%m-%d").date(),
             "referencia": datosForm["referencia"],
             "remitente": datosForm["remitente"],
