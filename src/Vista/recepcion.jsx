@@ -19,8 +19,8 @@ const Recepcion = () => {
     copia2: "",
     copia3: "",
     pdf: null,
-    leyenda: "",
-    urgente: "",
+    leyenda: "1", // Ajustado para que coincida con los valores del select
+    urgente: "1", // Ajustado para que coincida con los valores del select
   });
 
   const [pdfFile, setPdfFile] = useState(null);
@@ -52,17 +52,33 @@ const Recepcion = () => {
     fetchAreas();
   }, []);
 
-  /*
-  Autor: Abraham Alvarado Gutierrez
-  Fecha: 2-3-25
-  Descripcion: Funcion que cambia el valor de cada campo, en cuanto se efectua un cambio (actualizar valor al cambio)
-  */
-  // Manejar cambios en los campos del formulario - Actualiza el estado formData - Actualiza el estado fieldErrors
-  // Fecha: 15-3-25
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "pdf") {
+ //Autor: Abraham Alvarado Gutierrez
+ //Fecha: 2-3-25
+ //Descripcion: Funcion que cambia el valor de cada campo, en cuanto se efectua un cambio (actualizar valor al cambio)
+ 
+ const handleChange = (e) => {
+   const { name, value, files } = e.target;
+   // Autor: Abraham Alvarado Gutierrez
+   // Manejar cambios en los campos del formulario - Actualiza el estado formData - Actualiza el estado fieldErrors
+   // Ajuste a la función original para validar el campo Volante (solo números)
+   // Fecha: 15-3-25
+    if (name === "volante") {
+      // Validar que solo contenga números
+      const isNumeric = /^\d*$/.test(value);
+      if (!isNumeric) {
+        setError("El campo Volante solo puede contener números.");
+        setFieldErrors({ ...fieldErrors, volante: true });
+        return; // No actualizamos el estado si no es numérico
+      }
+      // Si pasa la validación, actualizamos el estado
+      setFormData({ ...formData, volante: value });
+      // Limpiar error si el campo se corrige
+      if (fieldErrors.volante) {
+        setFieldErrors({ ...fieldErrors, volante: false });
+        setError("");
+      }
+    } else if (name === "pdf") {
       const file = files[0];
       // Validar tipo de archivo (solo PDF) y tamaño (máximo 5MB)
       if (file) {
@@ -118,11 +134,16 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
 */
   const validarCampos = () => {
     const defaultSelectValue = ""; // Valor predeterminado para selectores (Selecciona Área)
-    const defaultBooleanValue = "No"; // Valor predeterminado para Leyenda y Urgente
+    const defaultBooleanValue = "1"; // Valor predeterminado para Leyenda y Urgente
     const errors = {};
 
     // Verificar campos de texto (no pueden estar vacíos)
-    if (!formData.volante.trim()) errors.volante = true;
+    if (!formData.volante.trim()) {
+      errors.volante = true;
+    } else if (!/^\d+$/.test(formData.volante)) {
+      // Validar que solo contenga números
+      errors.volante = true;
+    }
     if (!formData.fecha.trim()) errors.fecha = true;
     if (!formData.referencia.trim()) errors.referencia = true;
     if (!formData.cargo.trim()) errors.cargo = true;
@@ -142,7 +163,8 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
 
     // Verificar Leyenda (siempre obligatorio, no puede ser vacío, pero ya tiene valor por defecto "No")
     if (formData.leyenda === defaultBooleanValue) {
-      if (formData.urgente && formData.urgente !== "No") {
+      if (formData.urgente && formData.urgente !== "1") {
+        // Si Leyenda es "No" (1), Urgente debe ser "No" (1)
         errors.urgente = true;
       }
     }
@@ -165,7 +187,9 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
         .map((key) => {
           switch (key) {
             case "volante":
-              return "El campo Volante es obligatorio.";
+              return formData.volante.trim() === ""
+                ? "El campo Volante es obligatorio."
+                : "El campo Volante solo puede contener números.";
             case "fecha":
               return "El campo Fecha es obligatorio.";
             case "referencia":
@@ -257,8 +281,8 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
         copia2: "",
         copia3: "",
         pdf: null,
-        leyenda: "No",
-        urgente: "No",
+        leyenda: "1",
+        urgente: "1",
       });
       setPdfFile(null);
     } catch (error) {
@@ -276,7 +300,7 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
 // Autor : Miguel Angel Montoya Bautista
 // Fecha : 15-3-25
 // Descripcion: Función que hace la petición post para subir el archivo al servidor y posteriormente retornar el nombre del archivo
-//FALTA AGREGAR LA LOGICA DE COMO SE MANEJARA EL NOMBRE DEL ARCHIVO : recibo_YY-MM-DD_00000
+// FALTA AGREGAR LA LOGICA DE COMO SE MANEJARA EL NOMBRE DEL ARCHIVO : recibo_YY-MM-DD_00000
   const subirArchivo = async (archivo) => {
     try {
         const formPdf = new FormData();
@@ -304,13 +328,20 @@ const enviarRecibo = async (e) => {
 
   if (!idUsuario) {
     console.error("ID de usuario no encontrado en localStorage");
-    alert("Usuario no autenticado");
+    setError("Usuario no autenticado");
     return;
   }
 
+  if (validarCampos()) {
+    return; // No envía el formulario si hay errores
+  }
+
   try {
-    // Subir el archivo primero
-    const nombreArchivo = await subirArchivo(formData.pdf);
+    // Subir el archivo primero (si existe)
+    let nombreArchivo = null;
+    if (formData.pdf) {
+      nombreArchivo = await subirArchivo(formData.pdf);
+    }
 
     // Crear un objeto con los datos del formulario
     const datosParaEnviar = {
@@ -320,28 +351,49 @@ const enviarRecibo = async (e) => {
     };
 
     // Enviar los datos del formulario como JSON
-    console.log("Enviando al back el formulario:", datosParaEnviar);
-    /*const response = await axios.post("http://127.0.0.1:8000/registrarRecibo", datosParaEnviar, {
-      headers: {
-        "Content-Type": "application/json", // Enviar como JSON
-      },
-    });*/
     const { pdf, ...datosSinPdf } = datosParaEnviar;
 
-const response = await axios.post("http://127.0.0.1:8000/registrarRecibo", datosSinPdf, {
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-    
+    const response = await axios.post(
+      "http://127.0.0.1:8000/registrarRecibo",
+      datosSinPdf,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
 
     console.log("Respuesta del servidor:", response.data);
+    setError(""); // Limpiar errores
     alert("Recibo insertado correctamente");
+
+    // Resetear el formulario después de enviar
+    setFormData({
+      volante: "",
+      fecha: "",
+      referencia: "",
+      cargo: "",
+      remitente: "",
+      procedencia: "",
+      fechaOficio: "",
+      indicacion: "",
+      atencion: "",
+      asunto: "",
+      copia1: "",
+      copia2: "",
+      copia3: "",
+      pdf: null,
+      leyenda: "1",
+      urgente: "1",
+    });
+    setPdfFile(null);
   } catch (error) {
     console.error("Error al enviar el recibo:", error);
-    alert("Error al enviar el recibo");
+    setError("Error al enviar el recibo");
   }
 };
+
   return (
     <Container className="py-4">
       <Row className="mb-4">
@@ -365,14 +417,15 @@ const response = await axios.post("http://127.0.0.1:8000/registrarRecibo", datos
           <tbody>
             <tr>
               <td style={{ width: "50%" }}>
-                <Form.Group controlId="volante">
+              <Form.Group controlId="volante">
                   <Form.Label>Volante:</Form.Label>
                   <Form.Control
-                    type="text"
+                    type="text" // Podríamos usar type="number", pero lo manejamos manualmente para mejor control
                     name="volante"
                     value={formData.volante}
                     onChange={handleChange}
                     style={getInputStyle("volante")}
+                    placeholder="Ingrese solo números"
                   />
                 </Form.Group>
               </td>
@@ -480,9 +533,15 @@ const response = await axios.post("http://127.0.0.1:8000/registrarRecibo", datos
                     style={getInputStyle("atencion")}
                   >
                     <option value="">Selecciona Área</option>
-                    <option value="1">Área 1</option>
-                    <option value="2">Área 2</option>
-                    <option value="3">Área 3</option>
+                    {areas.length > 0 ? (
+                      areas.map((area) => (
+                        <option key={area.id} value={area.id}>
+                          {area.nombre}
+                        </option>
+                      ))
+                      ) : (
+                      <option disabled>Cargando áreas...</option>
+                      )}
                   </Form.Select>
                 </Form.Group>
               </td>
