@@ -82,8 +82,15 @@ EXECUTE FUNCTION asignar_userinfo_a_usuario();
 ALTER SEQUENCE usuarios_datos_id_usuario_dts_seq RESTART WITH 1;
 SELECT setval('public.usuarios_id_user_seq',(SELECT MAX(id_user) FROM public.usuarios));
 TRUNCATE TABLE public.usuarios RESTART IDENTITY;
+-- BORRAR SECUENCIA--
+DROP SEQUENCE IF EXISTS usuarios_datos_id_usuario_dts_seq;
+--REINICIAR SECUENCIA DESDE 0----
+ALTER SEQUENCE nombre_de_la_secuencia RESTART WITH 0;
 
-
+-- VER CUANTAS SECUENCIAS EXISTEN ---
+SELECT sequence_name
+FROM information_schema.sequences
+WHERE sequence_schema = 'public';
 
 
 

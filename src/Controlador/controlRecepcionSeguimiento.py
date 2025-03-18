@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from Modelo.modeloRecepcionModificar import Recibo  # Importa el modelo Recibo
+from Modelo.modeloRecepcionSeguimiento import Recibo  # Importa el modelo Recibo
 from Modelo.database import get_db
 from Controlador.crypto_utils import cifrar_dato, descifrar_dato
 

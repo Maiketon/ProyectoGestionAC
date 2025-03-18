@@ -3,7 +3,7 @@ from fastapi import HTTPException, UploadFile, Depends
 from datetime import datetime
 import os
 import shutil
-from Modelo.modeloRecepcionModificar import Recibo
+from Modelo.modeloRecepcionSeguimiento import Recibo
 
 async def guardar_archivo(pdf: UploadFile, db: AsyncSession) -> dict:
     try:

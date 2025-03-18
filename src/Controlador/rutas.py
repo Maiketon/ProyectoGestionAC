@@ -5,7 +5,7 @@ from Modelo.database import get_db
 #LIBRERIAS PARA LOS ARCHIVOS
 #CONTROLADORES
 from Controlador.controlLogin import validar_usuario
-from Controlador.controlRecepcionModificar import enviarDatosRecibo
+from Controlador.controlRecepcionSeguimiento import enviarDatosRecibo
 from Controlador.controlFiles import guardar_archivo
 
 from Controlador.controlCatalogos import catalogoAreas
