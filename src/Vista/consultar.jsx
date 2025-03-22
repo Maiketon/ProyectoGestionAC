@@ -1,4 +1,4 @@
-// src/Vista/consultar.jsx
+// src/Vista/consultar.jsx  -- Año / mes -- generar archivo excel
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Table, Button } from "react-bootstrap";
 
@@ -162,12 +162,6 @@ const Consultar = () => {
                 <th>Remitente</th>
                 <th>Cargo</th>
                 <th>No. de Oficio</th>
-                <th>Dependencia</th>
-                <th>Turnado a</th>
-                <th>Instrucción</th>
-                <th>Volante</th>
-                <th>PDF</th>
-                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -179,51 +173,6 @@ const Consultar = () => {
                     <td>{item.remitente}</td>
                     <td>{item.cargo}</td>
                     <td>{item.noOficio}</td>
-                    <td>{item.dependencia}</td>
-                    <td>{item.turnado}</td>
-                    <td>{item.instruccion}</td>
-                    <td>{item.volante}</td>
-                    <td>
-                      <Button
-                        variant="link"
-                        onClick={() => handleAction("pdf", item)}
-                      >
-                        Ver
-                      </Button>
-                    </td>
-                    <td>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => handleAction("oficio", item)}
-                      >
-                        Oficio
-                      </Button>
-                      <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => handleAction("imprimir", item)}
-                      >
-                        Imprimir
-                      </Button>
-                      <Button
-                        variant="outline-warning"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => handleAction("modificar", item)}
-                      >
-                        Modificar
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleAction("respuesta", item)}
-                      >
-                        Respuesta
-                      </Button>
-                    </td>
                   </tr>
                 ))
               ) : (
@@ -233,6 +182,11 @@ const Consultar = () => {
                   </td>
                 </tr>
               )}
+              <tr>
+                <td colSpan={11} className="text-center">
+                  <Button onClick={() => exportToExcel(filteredData)}>Exportar a Excel</Button>
+                </td>
+              </tr>
             </tbody>
           </Table>
         </Col>

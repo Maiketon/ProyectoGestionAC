@@ -1,51 +1,255 @@
-import React from "react";
-import { Container, Row, Col } from "react-bootstrap";
-import Logo from "./Utils/Images/LogoAlcaldiaVertical.png";
+// src/Vista/seguimiento.jsx - Solo consulta a la tabla
+import React, { useState, useEffect } from "react";
+import { Container, Row, Col, Form, Table, Button } from "react-bootstrap";
+
+// Definimos months y years fuera del componente para evitar cambios en la referencia
+const months = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+const years = ["2025", "2024", "2023"];
 
 const Seguimiento = () => {
+  // Estado para los filtros
+  const [filters, setFilters] = useState({
+    month: "",
+    year: "",
+  });
+
+  // Estado para los datos filtrados (inicia vacío)
+  const [filteredData, setFilteredData] = useState([]);
+
+  // Datos de ejemplo (puedes reemplazar con datos de una API)
+  const allData = [
+    {
+      fecha: "24/02/2025",
+      referencia: "4569",
+      remitente: "Eva Yael Reinosa Sánchez",
+      cargo: "Directora General de Desarrollo y Bienestar",
+      noOficio: "AC/RMSG/00013/2025",
+      dependencia: "DGDB",
+      turnado: "Desarrollo y Bienestar",
+      instruccion: "ASISTIR Y DAR SEGUIMIENTO",
+      volante: "259874",
+    },
+    {
+      fecha: "24/02/2025",
+      referencia: "521",
+      remitente: "abhtzir reynoso",
+      cargo: "abhtzir reynoso",
+      noOficio: "AC/RMSG/00001/2025",
+      dependencia: "DRMSG",
+      turnado: "Desarrollo y Bienestar",
+      instruccion: "ASISTIR Y DAR SEGUIMIENTO",
+      volante: "4521",
+    },
+    {
+      fecha: "25/02/2025",
+      referencia: "521",
+      remitente: "Eva Yael Reinosa Sánchez",
+      cargo: "Directora General de Desarrollo y Bienestar",
+      noOficio: "AC/RMSG/00001/2025",
+      dependencia: "DRMSG",
+      turnado: "Desarrollo y Bienestar",
+      instruccion: "ASISTIR Y DAR SEGUIMIENTO",
+      volante: "4521",
+    },
+    {
+      fecha: "03/02/2025",
+      referencia: "987",
+      remitente: "Carlos Segundo",
+      cargo: "Director General del ISSSTE",
+      noOficio: "SG/DG/JEL/PA/CCDMX/11/00084.3/2023",
+      dependencia: "La dependencia del oficio",
+      turnado: "Dirección General de Administración",
+      instruccion: "La instrucción que debe hacer el responsable del volante",
+      volante: "1234",
+    },
+  ];
+
+  // Filtrar datos cuando cambian los filtros
+  useEffect(() => {
+    if (filters.month && filters.year) {
+      const filtered = allData.filter((item) => {
+        const [day, month, year] = item.fecha.split("/");
+        const monthName = months[parseInt(month, 10) - 1]; // Convertir número de mes a nombre
+        return monthName === filters.month && year === filters.year;
+      });
+      setFilteredData(filtered);
+    } else {
+      setFilteredData([]); // Si no hay filtros, tabla vacía
+    }
+  }, [filters]); // Solo depende de filters, ya que months es constante afuera
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({ ...filters, [name]: value });
+  };
+
+  const handleAction = (action, item) => {
+    switch (action) {
+      case "oficio":
+        alert(`Generar Oficio para: ${item.volante}`);
+        break;
+      case "imprimir":
+        alert(`Imprimir registro: ${item.referencia}`);
+        break;
+      case "modificar":
+        alert(`Modificar registro: ${item.volante}`);
+        break;
+      case "respuesta":
+        alert(`Generar Respuesta para: ${item.volante}`);
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
-    <Container className="d-flex align-items-center justify-content-center">
-      <Row className="text-center">
+    <Container className="py-3">
+      <Row className="mb-3">
         <Col>
-          {/* Imagen centrada */}
-          <img src={Logo} alt="Logo" style={{ maxWidth: "200px", marginBottom: "20px" }} />
-          {/* Spinner personalizado */}
-          <div style={{ minHeight: "80px" }}>
-            <div className="custom-spinner" />
-          </div>
-          {/* Mensaje de espera */}
-          <h2><p className="mt-3 text-muted">...::: Seguimiento :::...</p></h2>
-          <h2><p className="mt-3 text-muted">...::: En espera de actividades :::...</p></h2>
+          <h2 className="text-center">
+            Selecciona mes y año para seguimiento en la Base de Datos
+          </h2>
         </Col>
       </Row>
 
-      {/* Estilos globales para el spinner */}
-      <style>
-        {`
-          .custom-spinner {
-            width: 50px;
-            height: 50px;
-            border: 8px solid transparent;
-            border-top: 8px solid #ffeb3b; /* Color inicial */
-            border-radius: 50%;
-            animation: spin 1s linear infinite, changeColor 3s infinite;
-            display: block;
-            margin: 0 auto;
-          }
+      <Row className="mb-3">
+        <Col md={3}>
+          <Form.Group controlId="monthFilter">
+            <Form.Label>Selecciona mes:</Form.Label>
+            <Form.Select
+              name="month"
+              value={filters.month}
+              onChange={handleFilterChange}
+            >
+              <option value="">Selecciona un mes</option>
+              {months.map((month) => (
+                <option key={month} value={month}>
+                  {month}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Col>
 
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
+        <Col md={3}>
+          <Form.Group controlId="yearFilter">
+            <Form.Label>Selecciona año:</Form.Label>
+            <Form.Select
+              name="year"
+              value={filters.year}
+              onChange={handleFilterChange}
+            >
+              <option value="">Selecciona un año</option>
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+        </Col>
 
-          @keyframes changeColor {
-            0% { border-top-color: #ffeb3b; } /* Amarillo */
-            33% { border-top-color: #f44336; } /* Rojo */
-            66% { border-top-color: #007bff; } /* Azul */
-            100% { border-top-color: #ffeb3b; } /* Vuelve a amarillo */
-          }
-        `}
-      </style>
+        <Col md={3}>
+        <Form.Group controlId="volanteFilter">
+            <Form.Label>Buscar por Volante:</Form.Label>
+            <Form.Control
+              type="text"
+              name="volante"
+              value={filters.volante}
+              onChange={handleFilterChange}
+            />
+          </Form.Group>
+        </Col>
+
+        <Col md={3}>
+          <Button variant="primary" className="mt-4">
+            Buscar
+          </Button>
+        </Col>
+
+      </Row>
+
+        
+      <Row>
+        <Col>
+          <Table bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Referencia</th>
+                <th>Remitente</th>
+                <th>Cargo</th>
+                <th>No. de Oficio</th>
+                <th>Dependencia</th>
+                <th>Turnado a</th>
+                <th>Instrucción</th>
+                <th>Volante</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.fecha}</td>
+                    <td>{item.referencia}</td>
+                    <td>{item.remitente}</td>
+                    <td>{item.cargo}</td>
+                    <td>{item.noOficio}</td>
+                    <td>{item.dependencia}</td>
+                    <td>{item.turnado}</td>
+                    <td>{item.instruccion}</td>
+                    <td>{item.volante}</td>
+
+                    <td>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleAction("oficio", item)}
+                      >
+                        Oficio
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleAction("imprimir", item)}
+                      >
+                        Imprimir
+                      </Button>
+                      <Button
+                        variant="outline-warning"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => handleAction("modificar", item)}
+                      >
+                        Modificar
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleAction("respuesta", item)}
+                      >
+                        Respuesta
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={11} className="text-center">
+                    Selecciona mes y año para mostrar los registros.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </Col>
+      </Row>
     </Container>
   );
 };

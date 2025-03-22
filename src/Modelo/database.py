@@ -3,7 +3,8 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.ext.declarative import declarative_base
 
 # Configuración de la base de datos
-DATABASE_URL = "postgresql+asyncpg://postgres:123456@localhost:5432/proyectoJefatura"
+#DATABASE_URL = "postgresql+asyncpg://postgres:123456@localhost:5432/proyectoJefatura"
+DATABASE_URL = "postgresql+asyncpg://postgres:123456@192.168.2.242:5432/proyectoJefatura"
 
 # Crear el motor asíncrono de la base de datos, para peticiones asincronas importante
 engine = create_async_engine(DATABASE_URL, echo=True)
