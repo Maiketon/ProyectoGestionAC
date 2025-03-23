@@ -7,3 +7,4 @@ class CatalogoAreas(Base):
 
     id_areas = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, unique=True, index=True)
+    titular =Column(String, unique=True,index=True)

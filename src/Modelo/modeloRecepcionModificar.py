@@ -212,58 +212,85 @@ class Recibo(Base):
 
             registros_actualizados = []
             for registro in registros:
-                # Subconsulta para obtener el nombre del área de atención
-                subquery_atencion = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.atencion))
-                subresult_atencion = await db.execute(subquery_atencion)
-                nombre_area_atencion = subresult_atencion.scalar()
+                try:
+                    # Subconsulta para obtener el nombre y titular del área de atención
+                    nombre_area_atencion = None
+                    titular_area_atencion = None
+                    if registro.atencion:
+                        subquery_atencion = select(CatalogoAreas.nombre, CatalogoAreas.titular).where(CatalogoAreas.id_areas == int(registro.atencion))
+                        subresult_atencion = await db.execute(subquery_atencion)
+                        result_atencion = subresult_atencion.fetchone()
+                        if result_atencion:
+                            nombre_area_atencion = result_atencion.nombre
+                            titular_area_atencion = result_atencion.titular
 
-                # Subconsultas para obtener los nombres de las áreas de las copias
-                nombre_copia_para = None
-                nombre_copia_para2 = None
-                nombre_copia_para3 = None
+                    # Subconsultas para obtener los nombres y titulares de las áreas de las copias
+                    nombre_copia_para = None
+                    titular_copia_para = None
+                    nombre_copia_para2 = None
+                    titular_copia_para2 = None
+                    nombre_copia_para3 = None
+                    titular_copia_para3 = None
 
-                if registro.copia_para:
-                    subquery_copia_para = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.copia_para))
-                    subresult_copia_para = await db.execute(subquery_copia_para)
-                    nombre_copia_para = subresult_copia_para.scalar()
+                    if registro.copia_para:
+                        subquery_copia_para = select(CatalogoAreas.nombre, CatalogoAreas.titular).where(CatalogoAreas.id_areas == int(registro.copia_para))
+                        subresult_copia_para = await db.execute(subquery_copia_para)
+                        result_copia_para = subresult_copia_para.fetchone()
+                        if result_copia_para:
+                            nombre_copia_para = result_copia_para.nombre
+                            titular_copia_para = result_copia_para.titular
 
-                if registro.copia_para2:
-                    subquery_copia_para2 = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.copia_para2))
-                    subresult_copia_para2 = await db.execute(subquery_copia_para2)
-                    nombre_copia_para2 = subresult_copia_para2.scalar()
+                    if registro.copia_para2:
+                        subquery_copia_para2 = select(CatalogoAreas.nombre, CatalogoAreas.titular).where(CatalogoAreas.id_areas == int(registro.copia_para2))
+                        subresult_copia_para2 = await db.execute(subquery_copia_para2)
+                        result_copia_para2 = subresult_copia_para2.fetchone()
+                        if result_copia_para2:
+                            nombre_copia_para2 = result_copia_para2.nombre
+                            titular_copia_para2 = result_copia_para2.titular
 
-                if registro.copia_para3:
-                    subquery_copia_para3 = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.copia_para3))
-                    subresult_copia_para3 = await db.execute(subquery_copia_para3)
-                    nombre_copia_para3 = subresult_copia_para3.scalar()
+                    if registro.copia_para3:
+                        subquery_copia_para3 = select(CatalogoAreas.nombre, CatalogoAreas.titular).where(CatalogoAreas.id_areas == int(registro.copia_para3))
+                        subresult_copia_para3 = await db.execute(subquery_copia_para3)
+                        result_copia_para3 = subresult_copia_para3.fetchone()
+                        if result_copia_para3:
+                            nombre_copia_para3 = result_copia_para3.nombre
+                            titular_copia_para3 = result_copia_para3.titular
 
-                # Crear el diccionario con los datos transformados
-                registro_dict = {
-                    "id_registro": registro.id_recibos,
-                    "fecha": registro.fecha_recibido.strftime("%Y-%m-%d") if registro.fecha_recibido else None,
-                    "referencia": registro.referencia,
-                    "remitente": registro.remitente,
-                    "cargo": registro.cargo,
-                    "noOficio": registro.oficio,
-                    "dependencia": registro.procedencia,
-                    "asunto": registro.asunto,
-                    "atencion_valor": registro.atencion,
-                    "atencion": nombre_area_atencion,  # Reemplazar con el nombre del área
-                    "volante": registro.volante,
-                    "indicacion": registro.indicacion,
-                    "fecha_captura": registro.fecha_captura.strftime("%Y-%m-%d") if registro.fecha_captura else None,
-                    "nivel_prioridad": registro.nivel_prioridad,
-                    "leyenda": registro.leyenda,
-                    "nombre_archivo": registro.nombre_archivo,
-                    "copia_para": registro.copia_para,
-                    "copia_para_nombre": nombre_copia_para,
-                    "copia_para2": registro.copia_para2,
-                    "copia_para2_nombre": nombre_copia_para2,
-                    "copia_para3": registro.copia_para3,
-                    "copia_para3_nombre": nombre_copia_para3,
-                    "fk_usuario_registra": registro.fk_usuario_registra,
-                }
-                registros_actualizados.append(registro_dict)
+                    # Crear el diccionario con los datos transformados
+                    registro_dict = {
+                        "id_registro": registro.id_recibos,
+                        "fecha": registro.fecha_recibido.strftime("%Y-%m-%d") if registro.fecha_recibido else None,
+                        "referencia": registro.referencia,
+                        "remitente": registro.remitente,
+                        "cargo": registro.cargo,
+                        "noOficio": registro.oficio,
+                        "dependencia": registro.procedencia,
+                        "asunto": registro.asunto,
+                        "atencion_valor": registro.atencion,
+                        "atencion": nombre_area_atencion,  # Nombre del área de atención
+                        "titular_atencion": titular_area_atencion,  # Titular del área de atención
+                        "volante": registro.volante,
+                        "indicacion": registro.indicacion,
+                        "fecha_captura": registro.fecha_captura.strftime("%Y-%m-%d") if registro.fecha_captura else None,
+                        "nivel_prioridad": registro.nivel_prioridad,
+                        "leyenda": registro.leyenda,
+                        "nombre_archivo": registro.nombre_archivo,
+                        "copia_para": registro.copia_para,
+                        "copia_para_nombre": nombre_copia_para,  # Nombre del área de copia_para
+                        "titular_copia_para": titular_copia_para,  # Titular del área de copia_para
+                        "copia_para2": registro.copia_para2,
+                        "copia_para2_nombre": nombre_copia_para2,  # Nombre del área de copia_para2
+                        "titular_copia_para2": titular_copia_para2,  # Titular del área de copia_para2
+                        "copia_para3": registro.copia_para3,
+                        "copia_para3_nombre": nombre_copia_para3,  # Nombre del área de copia_para3
+                        "titular_copia_para3": titular_copia_para3,  # Titular del área de copia_para3
+                        "fk_usuario_registra": registro.fk_usuario_registra,
+                    }
+                    registros_actualizados.append(registro_dict)
+
+                except Exception as e:
+                    print(f"❌ Error al procesar el registro {registro.id_recibos}: {str(e)}")
+                    continue  # Continuar con el siguiente registro si hay un error
 
             # Depurar el contenido de registros_actualizados
             print("📝 Registros actualizados:", registros_actualizados)

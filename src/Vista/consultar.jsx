@@ -65,6 +65,12 @@ const Consultar = () => {
 
   
   const exportToExcel = (data, year, month) => {
+    // Validar si hay al menos un registro en data
+    if (!data || data.length === 0) {
+        alert("No hay registros para exportar."); // Mostrar mensaje de alerta
+        return; // Detener la ejecución si no hay registros
+    }
+
     // Crear un nuevo libro de trabajo
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Registros");
@@ -158,7 +164,7 @@ const Consultar = () => {
       <Row className="mb-4">
         <Col>
           <h2 className="text-center">
-            Selecciona mes y año para consultar en la Base de Datos
+            Selecciona año y mes de <span>fecha de captura</span> de los registros que deseas consultar
           </h2>
         </Col>
       </Row>
