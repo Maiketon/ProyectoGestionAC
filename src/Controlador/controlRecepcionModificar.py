@@ -3,7 +3,7 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from Modelo.modeloRecepcionModificar import Recibo  # Importa el modelo Recibo
 from Modelo.database import get_db
-from Controlador.crypto_utils import cifrar_dato, descifrar_dato
+#from Controlador.crypto_utils import cifrar_dato, descifrar_dato
 
 
 async def enviarDatosRecibo(datosForm: dict, db: AsyncSession = Depends(get_db)):
@@ -11,13 +11,13 @@ async def enviarDatosRecibo(datosForm: dict, db: AsyncSession = Depends(get_db))
         print("📥 Datos recibidos en FastAPI:", datosForm)
 
         # Descifrar los campos cifrados
-        datosForm["copia1"] = descifrar_dato(datosForm["copia1"]) if datosForm["copia1"] else None
-        datosForm["copia2"] = descifrar_dato(datosForm["copia2"]) if datosForm["copia2"] else None
-        datosForm["copia3"] = descifrar_dato(datosForm["copia3"]) if datosForm["copia3"] else None
-        datosForm["fk_usuario_registra"] = descifrar_dato(datosForm["fk_usuario_registra"])
-        datosForm["atencion"] = descifrar_dato(datosForm["atencion"])
+        # datosForm["copia1"] = descifrar_dato(datosForm["copia1"]) if datosForm["copia1"] else None
+        # datosForm["copia2"] = descifrar_dato(datosForm["copia2"]) if datosForm["copia2"] else None
+        # datosForm["copia3"] = descifrar_dato(datosForm["copia3"]) if datosForm["copia3"] else None
+        # datosForm["fk_usuario_registra"] = descifrar_dato(datosForm["fk_usuario_registra"])
+        # datosForm["atencion"] = descifrar_dato(datosForm["atencion"])
         
-        print("✅ Datos descifrados correctamente:", datosForm)
+        # print("✅ Datos descifrados correctamente:", datosForm)
 
         # Mapear los datos correctamente
         datos_mapeados = {

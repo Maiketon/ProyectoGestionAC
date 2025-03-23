@@ -7,26 +7,6 @@ Descripcioon: Componente modal de prueba/ejemplo
 import React from "react";
 import { Modal, Button, Form, Table } from "react-bootstrap";
 
-const Recepcion = () => {
-  const [formData, setFormData] = useState({
-    fecha: "",
-    referencia: "",
-    cargo: "",
-    remitente: "",
-    procedencia: "",
-    fechaOficio: "",
-    indicacion: "",
-    atencion: "",
-    asunto: "",
-    copia1: "",
-    copia2: "",
-    copia3: "",
-    pdf: null,
-    leyenda: "1", // Ajustado para que coincida con los valores del select
-    urgente: "1", // Ajustado para que coincida con los valores del select
-  });
-}
-
 const ModalModificar = ({
   show,
   onHide,
@@ -147,7 +127,7 @@ const ModalModificar = ({
                     <Form.Control
                       type="text"
                       name="indicacion"
-                      value={formData.indicacion}
+                      value={formData.indicacion}  
                       onChange={handleChange}
                       style={getInputStyle("indicacion")}
                     />
@@ -159,8 +139,8 @@ const ModalModificar = ({
                   <Form.Group controlId="atencion">
                     <Form.Label>Atención:</Form.Label>
                     <Form.Select
-                      name="atencion"
-                      value={formData.atencion}
+                      name="atencion_valor" // Usar atencion_valor para el ID
+                      value={formData.atencion_valor} // Usar atencion_valor como valor
                       onChange={handleChange}
                       style={getInputStyle("atencion")}
                     >
@@ -186,7 +166,7 @@ const ModalModificar = ({
                       as="textarea"
                       rows={4}
                       name="asunto"
-                      value={formData.asunto}
+                      value={formData.indicacion} // Usar indicacion en lugar de asunto
                       onChange={handleChange}
                       style={getInputStyle("asunto")}
                     />
@@ -271,6 +251,17 @@ const ModalModificar = ({
                 <td colSpan={2}>
                   <Form.Group controlId="pdf">
                     <Form.Label>Subir PDF:</Form.Label>
+                    {formData.nombre_archivo && (
+                      <p>
+                        Archivo actual: {formData.nombre_archivo}{" "}
+                        <Button
+                          variant="link"
+                          onClick={() => setFormData({ ...formData, nombre_archivo: "", pdf: null })}
+                        >
+                          (Eliminar)
+                        </Button>
+                      </p>
+                    )}
                     <Form.Control
                       type="file"
                       name="pdf"

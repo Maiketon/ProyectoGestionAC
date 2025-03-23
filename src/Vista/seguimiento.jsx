@@ -95,11 +95,13 @@ const Seguimiento = () => {
     fechaOficio: "",
     indicacion: "",
     atencion: "",
+    atencion_valor: "", // Añadido para manejar el ID del área
     asunto: "",
     copia1: "",
     copia2: "",
     copia3: "",
     pdf: null,
+    nombre_archivo: "", // Añadido para manejar el nombre del archivo PDF existente
     leyenda: "1",
     urgente: "1",
   });
@@ -149,10 +151,10 @@ const Seguimiento = () => {
       const file = files[0];
       if (file) {
         setPdfFile(file);
-        setFormData({ ...formData, pdf: file });
+        setFormData({ ...formData, pdf: file, nombre_archivo: file.name });
       } else {
         setPdfFile(null);
-        setFormData({ ...formData, pdf: null });
+        setFormData({ ...formData, pdf: null, nombre_archivo: formData.nombre_archivo });
       }
     } else {
       setFormData({ ...formData, [name]: value });
@@ -186,8 +188,27 @@ const Seguimiento = () => {
           if (response.status === 200) {
             console.log("Esta es la información del registro \n");
             console.log(response.data);
-            //const data = response.data;
-            //openModal(data);
+            const data = response.data;
+            // Actualizar formData con los datos del backend
+            setFormData({
+              fecha: data.fecha || "",
+              referencia: data.referencia || "",
+              cargo: data.cargo || "",
+              remitente: data.remitente || "",
+              procedencia: data.dependencia || "",
+              fechaOficio: data.noOficio || "",
+              indicacion: data.instruccion || "",
+              atencion: data.turnado || "", // Nombre del área (para mostrar)
+              atencion_valor: data.atencion_valor || "", // ID del área (para el select)
+              copia1: data.copia_para ? String(data.copia_para) : "", // Convertir a string
+              copia2: data.copia_para2 ? String(data.copia_para2) : "", // Convertir a string
+              copia3: data.copia_para3 ? String(data.copia_para3) : "", // Convertir a string
+              pdf: null, // No cargamos el archivo, solo el nombre
+              nombre_archivo: data.nombre_archivo || "", // Nombre del archivo existente
+              leyenda: String(data.leyenda) || "1", // Convertir a string
+              urgente: String(data.nivel_prioridad) || "1", // Convertir a string
+            });
+            setShowModalModificar(true);
           } else {
             throw new Error("Error al obtener los datos del registro");
           }
@@ -201,27 +222,6 @@ const Seguimiento = () => {
 
           alert("Hubo un error al obtener los datos del registro");
         }
-
-        // Cargar los datos del registro seleccionado en el formulario
-        setSelectedRecord(item);
-        setFormData({
-          fecha: item.fecha,
-          referencia: item.referencia,
-          cargo: item.cargo,
-          remitente: item.remitente,
-          procedencia: item.dependencia,
-          fechaOficio: item.noOficio,
-          indicacion: item.indicacion,
-          atencion: item.atencion, // Esto debería mapearse al ID del área si tienes un mapeo
-          asunto: "", // Ajusta según los datos reales
-          copia1: "",
-          copia2: "",
-          copia3: "",
-          pdf: null,
-          leyenda: "1",
-          urgente: "1",
-        });
-        setShowModalModificar(true);
         break;
 
       case "respuesta":
@@ -234,7 +234,7 @@ const Seguimiento = () => {
   };
 
   return (
-    <Container fluid className="py-1 py-2">
+    <Container className="py-4">
       <Row className="mb-4">
         <Col>
           <h2 className="text-center">
@@ -375,7 +375,7 @@ const Seguimiento = () => {
           </Table>
         </Col>
       </Row>
-  
+
       {/* Modal para modificar */}
       <ModalModificar
         show={showModalModificar}
@@ -390,7 +390,6 @@ const Seguimiento = () => {
         onUpdate={() => alert("Actualización manejada por el backend")} // Placeholder
       />
     </Container>
-
   );
 };
 
