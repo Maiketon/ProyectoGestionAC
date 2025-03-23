@@ -227,6 +227,7 @@ class Recibo(Base):
                     "noOficio": registro.oficio,
                     "dependencia": registro.procedencia,
                     "asunto": registro.asunto,
+                    "atencion_valor": registro.atencion,
                     "atencion": nombre_area,  # Reemplazar con el nombre del área
                     "volante": registro.volante,
                     "indicacion": registro.indicacion,
