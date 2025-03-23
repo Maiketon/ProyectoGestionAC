@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from Modelo.database import Base
+from Modelo.modeloCatalogos import CatalogoAreas
 import logging
 
 # Configurar el logging
@@ -119,6 +120,8 @@ class Recibo(Base):
         ultimo_volante = resultado.scalars().first()
 
         return ultimo_volante if ultimo_volante else 0
+    
+    # FUNCION QUE PERMITE INSERTAR UN RECIBO DE RECEPCIÓN EN LA BASE DE DATOS
     @classmethod
     async def insertar_Recibo(cls, datos: dict, db: AsyncSession):
         try:
@@ -160,3 +163,90 @@ class Recibo(Base):
             await db.rollback()  # Revertir la transacción en caso de error
             logger.error("Error al insertar el recibo: %s", str(e), exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error al insertar el recibo: {str(e)}")
+    #Funcion que trae toda la información de un registro
+    @classmethod
+    async def obtenerInfoRegistro(cls, db: AsyncSession, id_registro: int):
+        try:
+            # Consultar el registro en la base de datos
+            query = select(cls).where(cls.id_recibos == id_registro)
+            result = await db.execute(query)
+            registro = result.scalars().first()
+
+            if not registro:
+                return None  # Si no se encuentra el registro, retornar None
+
+            return registro  # Retornar el registro encontrado
+
+        except Exception as e:
+            print(f"Error en obtenerInfoRegistro: {str(e)}")
+            raise  # Relanzar la excepción para manejarla en el endpoint
+
+
+
+
+    @classmethod
+    async def obtenerRegistrosFiltrados(cls, db: AsyncSession, year: int, month: int, volante: str = None):
+        """
+        Obtiene los registros filtrados por año, mes y (opcionalmente) volante.
+
+        :param db: Sesión de la base de datos.
+        :param year: Año de los registros.
+        :param month: Mes de los registros.
+        :param volante: Volante de los registros (opcional).
+        :return: Lista de registros que coinciden con los filtros.
+        """
+        try:
+            # Construir la consulta
+            query = select(cls).where(
+                extract("year", cls.fecha_captura) == year,
+                extract("month", cls.fecha_captura) == month,
+            )
+
+            # Si se proporciona un volante, agregarlo a la consulta
+            if volante:
+                query = query.where(cls.volante == volante)
+
+            # Ejecutar la consulta
+            result = await db.execute(query)
+            registros = result.scalars().all()
+
+            registros_actualizados = []
+            for registro in registros:
+                # Subconsulta para obtener el nombre del área
+                subquery = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.atencion))
+                subresult = await db.execute(subquery)
+                nombre_area = subresult.scalar()
+
+                # Crear el diccionario con los datos transformados
+                registro_dict = {
+                    "id_registro": registro.id_recibos,
+                    "fecha": registro.fecha_recibido.strftime("%Y-%m-%d") if registro.fecha_recibido else None,
+                    "referencia": registro.referencia,
+                    "remitente": registro.remitente,
+                    "cargo": registro.cargo,
+                    "noOficio": registro.oficio,
+                    "dependencia": registro.procedencia,
+                    "asunto": registro.asunto,
+                    "atencion": nombre_area,  # Reemplazar con el nombre del área
+                    "volante": registro.volante,
+                    "indicacion": registro.indicacion,
+                    "fecha_captura": registro.fecha_captura.strftime("%Y-%m-%d") if registro.fecha_captura else None,
+                    "nivel_prioridad": registro.nivel_prioridad,
+                    "leyenda": registro.leyenda,
+                    "nombre_archivo": registro.nombre_archivo,
+                    "copia_para": registro.copia_para,
+                    "copia_para2": registro.copia_para2,
+                    "copia_para3": registro.copia_para3,
+                    "fk_usuario_registra": registro.fk_usuario_registra,
+                }
+                registros_actualizados.append(registro_dict)
+
+            # Depurar el contenido de registros_actualizados
+            print("📝 Registros actualizados:", registros_actualizados)
+
+            # Devolver los registros actualizados
+            return registros_actualizados
+
+        except Exception as e:
+            print(f"❌ Error en obtenerRegistrosFiltrados: {str(e)}")
+            raise  # Relanzar la excepción para manejarla en el controlador

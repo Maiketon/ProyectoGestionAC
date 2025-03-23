@@ -1,7 +1,7 @@
 // src/Vista/seguimiento.jsx - Solo consulta a la tabla
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Table, Button } from "react-bootstrap";
-
+import axios from "axios";
 // Definimos months y years fuera del componente para evitar cambios en la referencia
 const months = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -11,17 +11,54 @@ const years = ["2025", "2024", "2023"];
 
 const Seguimiento = () => {
   // Estado para los filtros
+  /*const [filters, setFilters] = useState({
+    month: "",
+    year: "",
+    volante:"",
+  });¨*/
   const [filters, setFilters] = useState({
     month: "",
     year: "",
+    volante: "",
   });
+  
+  const [allData, setAllData] = useState([]); // Reemplaza los datos en crudo con un estado dinámico
+  
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({ ...filters, [name]: value });
+  };
+
+  const handleSearch = async () => {
+    console.log("haciendo petición de busquea con valores \n");
+    console.log(filters);
+    console.log("\n");
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/buscarRegistros", {
+        year: filters.year,
+        month: filters.month,
+        volante: filters.volante,
+      });
+      
+      if (response.status === 200) {
+        console.log(response.data);
+        setFilteredData(response.data); // Actualizar allData con los registros obtenidos
+      } else {
+        throw new Error("Error al obtener los registros");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Hubo un error al obtener los registros");
+    }
+  };
 
   // Estado para los datos filtrados (inicia vacío)
   const [filteredData, setFilteredData] = useState([]);
 
   // Datos de ejemplo (puedes reemplazar con datos de una API)
-  const allData = [
+  /*const allData = [
     {
+      id_registro: 1, // Nuevo campo
       fecha: "24/02/2025",
       referencia: "4569",
       remitente: "Eva Yael Reinosa Sánchez",
@@ -33,6 +70,7 @@ const Seguimiento = () => {
       volante: "259874",
     },
     {
+      id_registro: 2, // Nuevo campo
       fecha: "24/02/2025",
       referencia: "521",
       remitente: "abhtzir reynoso",
@@ -43,29 +81,8 @@ const Seguimiento = () => {
       instruccion: "ASISTIR Y DAR SEGUIMIENTO",
       volante: "4521",
     },
-    {
-      fecha: "25/02/2025",
-      referencia: "521",
-      remitente: "Eva Yael Reinosa Sánchez",
-      cargo: "Directora General de Desarrollo y Bienestar",
-      noOficio: "AC/RMSG/00001/2025",
-      dependencia: "DRMSG",
-      turnado: "Desarrollo y Bienestar",
-      instruccion: "ASISTIR Y DAR SEGUIMIENTO",
-      volante: "4521",
-    },
-    {
-      fecha: "03/02/2025",
-      referencia: "987",
-      remitente: "Carlos Segundo",
-      cargo: "Director General del ISSSTE",
-      noOficio: "SG/DG/JEL/PA/CCDMX/11/00084.3/2023",
-      dependencia: "La dependencia del oficio",
-      turnado: "Dirección General de Administración",
-      instruccion: "La instrucción que debe hacer el responsable del volante",
-      volante: "1234",
-    },
-  ];
+    // Otros registros...
+  ];*/
 
   // Filtrar datos cuando cambian los filtros
   useEffect(() => {
@@ -81,25 +98,54 @@ const Seguimiento = () => {
     }
   }, [filters]); // Solo depende de filters, ya que months es constante afuera
 
-  const handleFilterChange = (e) => {
+/*  const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
-  };
+  };*/
 
-  const handleAction = (action, item) => {
+  const handleAction = async (action, item) => {
     switch (action) {
       case "oficio":
         alert(`Generar Oficio para: ${item.volante}`);
         break;
+  
       case "imprimir":
         alert(`Imprimir registro: ${item.referencia}`);
         break;
       case "modificar":
-        alert(`Modificar registro: ${item.volante}`);
-        break;
+        console.log("ID Registro enviado:", item.id_registro);
+          try {
+            const response = await axios.post(
+              "http://127.0.0.1:8000/modificarObtenerInfo",
+              {
+                id_registro: item.id_registro // Enviamos el id_registro
+              }
+            );
+    
+            if (response.status === 200) {
+              console.log("Esta es la información del registro \n");
+              console.log(response.data);
+              //const data = response.data;
+              //openModal(data);
+            } else {
+              throw new Error("Error al obtener los datos del registro");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+    
+            // Mostrar detalles del error 422
+            if (error.response && error.response.status === 422) {
+              console.error("Detalles del error 422:", error.response.data);
+            }
+    
+            alert("Hubo un error al obtener los datos del registro");
+          }
+          break;
+  
       case "respuesta":
         alert(`Generar Respuesta para: ${item.volante}`);
         break;
+  
       default:
         break;
     }
@@ -165,9 +211,9 @@ const Seguimiento = () => {
         </Col>
 
         <Col md={3}>
-          <Button variant="primary" className="mt-4">
-            Buscar
-          </Button>
+        <Button variant="primary" className="mt-4" onClick={handleSearch}>
+          Buscar
+        </Button>
         </Col>
 
       </Row>
@@ -200,8 +246,8 @@ const Seguimiento = () => {
                     <td>{item.cargo}</td>
                     <td>{item.noOficio}</td>
                     <td>{item.dependencia}</td>
-                    <td>{item.turnado}</td>
-                    <td>{item.instruccion}</td>
+                    <td>{item.atencion}</td>
+                    <td>{item.indicacion}</td>
                     <td>{item.volante}</td>
 
                     <td>

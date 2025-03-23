@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException,File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException,File, UploadFile, Body
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 from Modelo.database import get_db
 #LIBRERIAS PARA LOS ARCHIVOS
 #CONTROLADORES
 from Controlador.controlLogin import validar_usuario
-from Controlador.controlRecepcionModificar import enviarDatosRecibo
+from Controlador.controlRecepcionModificar import *
 from Controlador.controlFiles import guardar_archivo
 
 from Controlador.controlCatalogos import catalogoAreas
@@ -22,6 +22,16 @@ async def login(usuario: str, password: str, db: AsyncSession = Depends(get_db))
 async def formulario_recepcion(datosForm: dict, db: AsyncSession = Depends(get_db)):
     print("📥 Datos recibidos en FastAPI:", datosForm)  # <-- Agrega esto
     return await enviarDatosRecibo(datosForm, db)
+
+@router.post("/modificarObtenerInfo")
+async def obtener_infoModificar(id_registro: dict, db:AsyncSession= Depends(get_db)):
+    return await obtenerInfoRegistro(id_registro,db)
+
+@router.post("/buscarRegistros")
+async def buscar_registrosFiltrados(filtro: dict, db:AsyncSession=Depends(get_db)):
+    return await registrosFiltados(filtro,db)
+
+
 #async def registrarOficio
 
 
