@@ -65,7 +65,7 @@ const ModalModificar = ({
                   <Form.Group controlId="fecha">
                     <Form.Label>Fecha:</Form.Label>
                     <Form.Control
-                      type="date"
+                      type="text"
                       name="fecha"
                       value={formData.fecha}
                       onChange={handleChange}

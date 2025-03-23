@@ -7,7 +7,7 @@ const months = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
-const years = ["2025", "2024", "2023"];
+const years = ["2025", "2026", "2027"];
 
 const Consultar = () => {
   // Estado para los filtros

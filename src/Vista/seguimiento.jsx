@@ -1,19 +1,24 @@
-// src/Vista/seguimiento.jsx - Solo consulta a la tabla
+// src/Vista/seguimiento.jsx
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Container, Row, Col, Form, Table, Button } from "react-bootstrap";
+// MODALES O COMPONENTES
+import ModalModificar from "./Modales/modalModificar.jsx"; // Ajusta la ruta según tu estructura de carpetas
+// Ajuste la ruta de la imagen según su estructura de carpetas
 
 // Definimos months y years fuera del componente para evitar cambios en la referencia
 const months = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
-const years = ["2025", "2024", "2023"];
+const years = ["2025", "2026", "2027"];
 
 const Seguimiento = () => {
   // Estado para los filtros
   const [filters, setFilters] = useState({
     month: "",
     year: "",
+    volante: "",
   });
 
   // Estado para los datos filtrados (inicia vacío)
@@ -67,6 +72,47 @@ const Seguimiento = () => {
     },
   ];
 
+  const [areas, setAreas] = useState([]); // Estado para las áreas
+  const [showModalModificar, setShowModalModificar] = useState(false); // Estado para el modal
+  const [selectedRecord, setSelectedRecord] = useState(null); // Registro seleccionado para modificar
+  const [formData, setFormData] = useState({
+    fecha: "",
+    referencia: "",
+    cargo: "",
+    remitente: "",
+    procedencia: "",
+    fechaOficio: "",
+    indicacion: "",
+    atencion: "",
+    asunto: "",
+    copia1: "",
+    copia2: "",
+    copia3: "",
+    pdf: null,
+    leyenda: "1",
+    urgente: "1",
+  });
+  const [pdfFile, setPdfFile] = useState(null); // Estado para el archivo PDF
+
+  // Cargar áreas desde el backend
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:8000/areas", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setAreas(response.data);
+      } catch (error) {
+        console.error("Error al obtener las áreas:", error);
+        alert("No se pudieron cargar las áreas. Intenta de nuevo.");
+      }
+    };
+
+    fetchAreas();
+  }, []);
+
   // Filtrar datos cuando cambian los filtros
   useEffect(() => {
     if (filters.month && filters.year) {
@@ -76,15 +122,40 @@ const Seguimiento = () => {
         return monthName === filters.month && year === filters.year;
       });
       setFilteredData(filtered);
+    } else if (filters.volante) {
+      const filtered = allData.filter((item) =>
+        item.volante.includes(filters.volante)
+      );
+      setFilteredData(filtered);
     } else {
-      setFilteredData([]); // Si no hay filtros, tabla vacía
+      setFilteredData([]);
     }
-  }, [filters]); // Solo depende de filters, ya que months es constante afuera
+  }, [filters, allData]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
   };
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === "pdf") {
+      const file = files[0];
+      if (file) {
+        setPdfFile(file);
+        setFormData({ ...formData, pdf: file });
+      } else {
+        setPdfFile(null);
+        setFormData({ ...formData, pdf: null });
+      }
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const getInputStyle = (fieldName) => ({
+    borderColor: "#007bff", // Estilo por defecto
+  });
 
   const handleAction = (action, item) => {
     switch (action) {
@@ -95,7 +166,26 @@ const Seguimiento = () => {
         alert(`Imprimir registro: ${item.referencia}`);
         break;
       case "modificar":
-        alert(`Modificar registro: ${item.volante}`);
+        // Cargar los datos del registro seleccionado en el formulario
+        setSelectedRecord(item);
+        setFormData({
+          fecha: item.fecha,
+          referencia: item.referencia,
+          cargo: item.cargo,
+          remitente: item.remitente,
+          procedencia: item.dependencia,
+          fechaOficio: item.noOficio,
+          indicacion: item.instruccion,
+          atencion: "", // Esto debería mapearse al ID del área si tienes un mapeo
+          asunto: "", // Ajusta según los datos reales
+          copia1: "",
+          copia2: "",
+          copia3: "",
+          pdf: null,
+          leyenda: "1",
+          urgente: "1",
+        });
+        setShowModalModificar(true);
         break;
       case "respuesta":
         alert(`Generar Respuesta para: ${item.volante}`);
@@ -153,7 +243,7 @@ const Seguimiento = () => {
         </Col>
 
         <Col md={3}>
-        <Form.Group controlId="volanteFilter">
+          <Form.Group controlId="volanteFilter">
             <Form.Label>Buscar por Volante:</Form.Label>
             <Form.Control
               type="text"
@@ -169,10 +259,8 @@ const Seguimiento = () => {
             Buscar
           </Button>
         </Col>
-
       </Row>
 
-        
       <Row>
         <Col>
           <Table bordered hover responsive>
@@ -203,7 +291,6 @@ const Seguimiento = () => {
                     <td>{item.turnado}</td>
                     <td>{item.instruccion}</td>
                     <td>{item.volante}</td>
-
                     <td>
                       <Button
                         variant="outline-primary"
@@ -242,7 +329,7 @@ const Seguimiento = () => {
               ) : (
                 <tr>
                   <td colSpan={11} className="text-center">
-                    Selecciona mes y año para mostrar los registros.
+                    Selecciona mes y año o busca por volante para mostrar los registros.
                   </td>
                 </tr>
               )}
@@ -250,6 +337,20 @@ const Seguimiento = () => {
           </Table>
         </Col>
       </Row>
+
+      {/* Modal para modificar */}
+      <ModalModificar
+        show={showModalModificar}
+        onHide={() => setShowModalModificar(false)}
+        formData={formData}
+        handleChange={handleChange}
+        enviarRecibo={() => alert("Envío manejado por el backend")} // Placeholder
+        getInputStyle={getInputStyle}
+        areas={areas}
+        pdfFile={pdfFile}
+        isEditing={true}
+        onUpdate={() => alert("Actualización manejada por el backend")} // Placeholder
+      />
     </Container>
   );
 };
