@@ -86,6 +86,7 @@ async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
                 "dependencia": registro.procedencia,
                 "turnado": registro.atencion,
                 "instruccion": registro.indicacion,
+                "asunto": registro.asunto,
                 "volante": registro.volante,
                 "nombre_archivo": registro.nombre_archivo,
             }
@@ -133,6 +134,7 @@ async def obtenerInfoRegistro(id_registro: dict, db: AsyncSession = Depends(get_
             "dependencia": registro.procedencia,
             "turnado": registro.atencion,
             "instruccion": registro.indicacion,
+            "asunto": registro.asunto, 
             "volante": registro.volante,
             "nivel_prioridad": registro.nivel_prioridad,
             "leyenda": registro.leyenda,

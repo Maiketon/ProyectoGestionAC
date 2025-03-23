@@ -1,7 +1,7 @@
 // src/Vista/seguimiento.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Container, Row, Col, Form, Table, Button } from "react-bootstrap";
+import { Container, Row, Col, Form, Table, Button, Modal } from "react-bootstrap";
 
 // MODALES O COMPONENTES
 import ModalModificar from "./Modales/modalModificar.jsx"; // Ajusta la ruta según tu estructura de carpetas
@@ -85,6 +85,8 @@ const Seguimiento = () => {
 
   const [areas, setAreas] = useState([]); // Estado para las áreas
   const [showModalModificar, setShowModalModificar] = useState(false); // Estado para el modal
+  const [showModalOficio, setShowModalOficio] = useState(false); // Estado para el modal de oficio
+  const [selectedPdfFileName, setSelectedPdfFileName] = useState(""); // Estado para el nombre del archivo PDF
   const [selectedRecord, setSelectedRecord] = useState(null); // Registro seleccionado para modificar
   const [formData, setFormData] = useState({
     fecha: "",
@@ -168,7 +170,9 @@ const Seguimiento = () => {
   const handleAction = async (action, item) => {
     switch (action) {
       case "oficio":
-        alert(`Generar Oficio para: ${item.volante}`);
+        // Establecer el nombre del archivo PDF y abrir el modal
+        setSelectedPdfFileName(item.nombre_archivo || "");
+        setShowModalOficio(true);
         break;
 
       case "imprimir":
@@ -389,6 +393,34 @@ const Seguimiento = () => {
         isEditing={true}
         onUpdate={() => alert("Actualización manejada por el backend")} // Placeholder
       />
+
+      {/* Modal para vista previa del PDF */}
+      <Modal
+        show={showModalOficio}
+        onHide={() => setShowModalOficio(false)}
+        size="lg"
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Vista Previa del Oficio</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {{ ...formData, nombre_archivo: "", pdf: null } ? (
+            <iframe
+              src={`http://127.0.0.1:8000/buscarRegistros/${{ ...formData, nombre_archivo: "", pdf: null }}`}
+              style={{ width: "100%", height: "500px" }}
+              title="Vista previa del PDF"
+            />
+          ) : (
+            <p>No se encontró el archivo PDF para este registro.</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModalOficio(false)}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

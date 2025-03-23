@@ -183,8 +183,6 @@ Descripción:Valida que el formulario de recepción, no tenga campos incompletos
         return "El campo Asunto es obligatorio.";
         case "atencion":
         return "Debes seleccionar un área en el campo Atención.";
-        case "urgente":
-        return "El campo Urgente debe ser 'No' cuando Leyenda es 'No'.";
         case "pdf":
         return pdfFile && !pdfFile.type.includes("application/pdf")
           ? "El archivo subido debe ser un PDF."

@@ -166,7 +166,7 @@ const ModalModificar = ({
                       as="textarea"
                       rows={4}
                       name="asunto"
-                      value={formData.indicacion} // Usar indicacion en lugar de asunto
+                      value={formData.asunto} // Usar indicacion en lugar de asunto
                       onChange={handleChange}
                       style={getInputStyle("asunto")}
                     />
