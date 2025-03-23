@@ -139,8 +139,8 @@ const ModalModificar = ({
                   <Form.Group controlId="atencion">
                     <Form.Label>Atención:</Form.Label>
                     <Form.Select
-                      name="atencion_valor" // Usar atencion_valor para el ID
-                      value={formData.atencion_valor} // Usar atencion_valor como valor
+                      name="atencion" 
+                      value={formData.atencion} 
                       onChange={handleChange}
                       style={getInputStyle("atencion")}
                     >
