@@ -207,3 +207,56 @@ async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
             status_code=500,
             detail=f"Error al buscar registros: {str(e)}"
         )
+    
+
+    #FUNCIONES PARA EL COMPONENTE DE CONSULTAR
+    
+async def consultar_MesAnio(filtro: dict, db: AsyncSession = Depends(get_db)):
+    """
+    Obtiene los registros filtrados por año y mes.
+
+    :param filtro: Diccionario con los filtros (year, month).
+    :param db: Sesión de la base de datos.
+    :return: Lista de registros que coinciden con los filtros.
+    """
+    try:
+        # Validar que los filtros necesarios estén presentes
+        if "year" not in filtro or "month" not in filtro:
+            raise HTTPException(
+                status_code=422,
+                detail="Los campos 'year' y 'month' son requeridos"
+            )
+
+        # Convertir el nombre del mes a número
+        months = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+        ]
+        month_name = filtro["month"].capitalize()  # Asegurar formato correcto
+        if month_name not in months:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Nombre del mes no válido: {filtro['month']}"
+            )
+        month_number = months.index(month_name) + 1  # Convertir nombre del mes a número
+
+        # Llamar al modelo para obtener los registros filtrados
+        registros = await Recibo.obtenerRegistrosFiltrados(
+            db,
+            year=int(filtro["year"]),
+            month=month_number,
+        )
+
+        # Devolver la respuesta directamente (ya está en el formato correcto)
+        return registros
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Error en los filtros: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al buscar registros: {str(e)}"
+        )    
