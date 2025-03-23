@@ -212,10 +212,30 @@ class Recibo(Base):
 
             registros_actualizados = []
             for registro in registros:
-                # Subconsulta para obtener el nombre del área
-                subquery = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.atencion))
-                subresult = await db.execute(subquery)
-                nombre_area = subresult.scalar()
+                # Subconsulta para obtener el nombre del área de atención
+                subquery_atencion = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.atencion))
+                subresult_atencion = await db.execute(subquery_atencion)
+                nombre_area_atencion = subresult_atencion.scalar()
+
+                # Subconsultas para obtener los nombres de las áreas de las copias
+                nombre_copia_para = None
+                nombre_copia_para2 = None
+                nombre_copia_para3 = None
+
+                if registro.copia_para:
+                    subquery_copia_para = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.copia_para))
+                    subresult_copia_para = await db.execute(subquery_copia_para)
+                    nombre_copia_para = subresult_copia_para.scalar()
+
+                if registro.copia_para2:
+                    subquery_copia_para2 = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.copia_para2))
+                    subresult_copia_para2 = await db.execute(subquery_copia_para2)
+                    nombre_copia_para2 = subresult_copia_para2.scalar()
+
+                if registro.copia_para3:
+                    subquery_copia_para3 = select(CatalogoAreas.nombre).where(CatalogoAreas.id_areas == int(registro.copia_para3))
+                    subresult_copia_para3 = await db.execute(subquery_copia_para3)
+                    nombre_copia_para3 = subresult_copia_para3.scalar()
 
                 # Crear el diccionario con los datos transformados
                 registro_dict = {
@@ -228,7 +248,7 @@ class Recibo(Base):
                     "dependencia": registro.procedencia,
                     "asunto": registro.asunto,
                     "atencion_valor": registro.atencion,
-                    "atencion": nombre_area,  # Reemplazar con el nombre del área
+                    "atencion": nombre_area_atencion,  # Reemplazar con el nombre del área
                     "volante": registro.volante,
                     "indicacion": registro.indicacion,
                     "fecha_captura": registro.fecha_captura.strftime("%Y-%m-%d") if registro.fecha_captura else None,
@@ -236,8 +256,11 @@ class Recibo(Base):
                     "leyenda": registro.leyenda,
                     "nombre_archivo": registro.nombre_archivo,
                     "copia_para": registro.copia_para,
+                    "copia_para_nombre": nombre_copia_para,
                     "copia_para2": registro.copia_para2,
+                    "copia_para2_nombre": nombre_copia_para2,
                     "copia_para3": registro.copia_para3,
+                    "copia_para3_nombre": nombre_copia_para3,
                     "fk_usuario_registra": registro.fk_usuario_registra,
                 }
                 registros_actualizados.append(registro_dict)
@@ -251,3 +274,5 @@ class Recibo(Base):
         except Exception as e:
             print(f"❌ Error en obtenerRegistrosFiltrados: {str(e)}")
             raise  # Relanzar la excepción para manejarla en el controlador
+
+    #FUNCIONES PARA EL COMPONENTE DE CONSULTAR

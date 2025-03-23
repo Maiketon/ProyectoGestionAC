@@ -32,6 +32,10 @@ async def buscar_registrosFiltrados(filtro: dict, db:AsyncSession=Depends(get_db
     return await registrosFiltados(filtro,db)
 
 
+@router.post("/consultarRegistros")
+async def consultarMesAnio(filtro: dict, db:AsyncSession=Depends(get_db)):
+    return await consultar_MesAnio(filtro,db)
+
 #async def registrarOficio
 
 
