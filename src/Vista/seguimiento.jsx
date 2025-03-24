@@ -3,13 +3,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Container, Row, Col, Form, Table, Button, Modal } from "react-bootstrap";
 
-import jsPDF from 'jspdf';
-  import 'jspdf-autotable';
-
 // MODALES O COMPONENTES
 import ModalModificar from "./Modales/modalModificar.jsx"; // Ajusta la ruta según tu estructura de carpetas
-import LogoAlcaldia from "./Utils/Images/Logo_AC.png";
-import LogoAlcaldia2 from "./Utils/Images/Logo_AC02.png";
+import ModalRespuesta from "./Modales/ModalRespuesta.jsx"; // Ajusta la ruta según tu estructura de carpetas
+
 // Definimos months y years fuera del componente para evitar cambios en la referencia
 const months = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -88,10 +85,11 @@ const Seguimiento = () => {
   ];*/
 
   const [areas, setAreas] = useState([]); // Estado para las áreas
-  const [showModalModificar, setShowModalModificar] = useState(false); // Estado para el modal
+  const [showModalModificar, setShowModalModificar] = useState(false); // Estado para el modal de modificar
   const [showModalOficio, setShowModalOficio] = useState(false); // Estado para el modal de oficio
+  const [showModalRespuesta, setShowModalRespuesta] = useState(false); // Estado para el modal de respuesta
   const [selectedPdfFileName, setSelectedPdfFileName] = useState(""); // Estado para el nombre del archivo PDF
-  const [selectedRecord, setSelectedRecord] = useState(null); // Registro seleccionado para modificar
+  const [selectedRecord, setSelectedRecord] = useState(null); // Registro seleccionado para modificar o responder
   const [formData, setFormData] = useState({
     fecha: "",
     referencia: "",
@@ -171,8 +169,6 @@ const Seguimiento = () => {
     borderColor: "#007bff", // Estilo por defecto
   });
 
-  
-  
   const handleAction = async (action, item) => {
     switch (action) {
       case "oficio":
@@ -180,11 +176,11 @@ const Seguimiento = () => {
         setSelectedPdfFileName(item.nombre_archivo || "");
         setShowModalOficio(true);
         break;
-  
+
       case "imprimir":
-        generatePDF(item); // Llamamos a la función para generar el PDF
+        alert(`Imprimir registro: ${item.referencia}`);
         break;
-  
+
       case "modificar":
         console.log("ID Registro enviado:", item.id_registro);
         try {
@@ -194,7 +190,7 @@ const Seguimiento = () => {
               id_registro: item.id_registro // Enviamos el id_registro
             }
           );
-  
+
           if (response.status === 200) {
             console.log("Esta es la información del registro \n");
             console.log(response.data);
@@ -224,184 +220,56 @@ const Seguimiento = () => {
           }
         } catch (error) {
           console.error("Error:", error);
-  
+
           // Mostrar detalles del error 422
           if (error.response && error.response.status === 422) {
             console.error("Detalles del error 422:", error.response.data);
           }
-  
+
           alert("Hubo un error al obtener los datos del registro");
         }
-  
-        // Cargar los datos del registro seleccionado en el formulario
-        setSelectedRecord(item);
-        setFormData({
-          fecha: item.fecha,
-          referencia: item.referencia,
-          cargo: item.cargo,
-          remitente: item.remitente,
-          procedencia: item.dependencia,
-          fechaOficio: item.noOficio,
-          indicacion: item.indicacion,
-          atencion: item.atencion, // Esto debería mapearse al ID del área si tienes un mapeo
-          asunto: "", // Ajusta según los datos reales
-          copia1: "",
-          copia2: "",
-          copia3: "",
-          pdf: null,
-          leyenda: "1",
-          urgente: "1",
-        });
-        setShowModalModificar(true);
         break;
-  
+
       case "respuesta":
-        alert(`Generar Respuesta para: ${item.volante}`);
+        setSelectedRecord(item); // Guardar el registro seleccionado
+        setShowModalRespuesta(true); // Abrir el modal de respuesta
         break;
-  
+
       default:
         break;
     }
   };
-  
-  const generatePDF = (item) => {
-      const doc = new jsPDF();
-  
-      // Tamaño de los logos (ajusta según sea necesario)
-      const logoWidth = 25; // Aumentamos el tamaño de los logos
-      const logoHeight = 25;
-  
-      // Agregar los logos en el encabezado
-      doc.addImage(LogoAlcaldia, 'PNG', 10, 10, logoWidth, logoHeight); // Logo a la izquierda
-      doc.addImage(LogoAlcaldia2, 'PNG', doc.internal.pageSize.width - 10 - logoWidth, 10, logoWidth, logoHeight); // Logo a la derecha
-  
-      // Centrar el texto entre los dos logos
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      const text = "Coordinación General de Desarrollo y Buena Administración";
-      const textWidth = doc.getTextWidth(text);
-      const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-      doc.text(text, centerX, 20 + logoHeight / 2); // Ajustar la posición vertical del texto
-  
-      doc.setFontSize(12);
-      const text2 = "Volante de Correspondencia";
-      const textWidth2 = doc.getTextWidth(text2);
-      const centerX2 = (doc.internal.pageSize.width - textWidth2) / 2;
-      doc.text(text2, centerX2, 30 + logoHeight / 2); // Ajustar la posición vertical del texto
-  
-      // Información del Volante (etiquetas en negritas, variables en texto normal)
-      let yOffset = 20 + logoHeight; // Posición inicial después del encabezado
-  
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text("Fecha:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.fecha}`, 40, yOffset); // Ajustar la posición del valor
-  
-      yOffset += 8; // Reducir el interlineado
-      doc.setFont('helvetica', 'bold');
-      doc.text("Volante:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.volante}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Referencia:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.referencia}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Atención:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.titular_atencion}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Cargo:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.cargo}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Remitente:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.remitente}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Cargo del Remitente:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.cargo}`, 60, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Procedencia:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.dependencia}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Fecha y No. de Oficio:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.noOficio}`, 60, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Asunto:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.asunto}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Indicación:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.indicacion}`, 40, yOffset);
-  
-      // Definir yOffset fuera del bloque if
-      yOffset += 16; // Espacio adicional antes de las copias
-  
-      // Agregar las copias para, si las 3 copia_para están vacías no poner el campo C.C.P:
-      if (item.copia_para || item.copia_para2 || item.copia_para3) {
-          doc.setFont('helvetica', 'bold');
-          doc.text("C.C.P:", 10, yOffset);
-          yOffset += 8; // Incrementar la posición para las copias
-  
-          if (item.copia_para) {
-              doc.setFont('helvetica', 'normal');
-              doc.text(`- ${item.copia_para_nombre} (${item.titular_copia_para})`, 10, yOffset);
-              yOffset += 8; // Incrementar la posición para la siguiente copia
-          }
-          if (item.copia_para2) {
-              doc.setFont('helvetica', 'normal');
-              doc.text(`- ${item.copia_para2_nombre} (${item.titular_copia_para2})`, 10, yOffset);
-              yOffset += 8; // Incrementar la posición para la siguiente copia
-          }
-          if (item.copia_para3) {
-              doc.setFont('helvetica', 'normal');
-              doc.text(`- ${item.copia_para3_nombre} (${item.titular_copia_para3})`, 10, yOffset);
-              yOffset += 8; // Incrementar la posición para la siguiente copia
-          }
+
+  // Función para manejar el envío del formulario del modal de respuesta
+  const handleRespuestaSubmit = async (data) => {
+    if (!selectedRecord) return;
+
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("id_registro", selectedRecord.id_registro);
+      formDataToSend.append("respuesta", data.respuesta);
+      if (data.pdf) {
+        formDataToSend.append("pdf", data.pdf);
       }
-  
-      // Validar si el valor de leyenda es 1 o 2
-      if (item.leyenda === "1" || item.leyenda === "2") {
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.text("GVS ORNELAS", 10, yOffset + 10); // Ajustar la posición según sea necesario
-          yOffset += 16; // Incrementar la posición para la firma
+
+      const response = await axios.post("http://127.0.0.1:8000/guardarRespuesta", formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.status === 200) {
+        alert("Respuesta guardada exitosamente");
+        // Opcional: Actualizar la tabla después de guardar
+        handleSearch();
+      } else {
+        throw new Error("Error al guardar la respuesta");
       }
-  
-      // Firma y cargo (centrado y en negritas)
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text("ATENTAMENTE", doc.internal.pageSize.width / 2, yOffset + 20, { align: 'center' }); // Centrado
-      doc.text("Sergio Alfredo Chávez López", doc.internal.pageSize.width / 2, yOffset + 30, { align: 'center' }); // Centrado
-      doc.setFont('helvetica', 'normal');
-      doc.text("Coordinador General de Planeación del Desarrollo y Buena Administración", doc.internal.pageSize.width / 2, yOffset + 40, { align: 'center' }); // Centrado
-  
-      // Guardar el PDF
-      doc.save(`volante_${item.volante}.pdf`);
+    } catch (error) {
+      console.error("Error al guardar la respuesta:", error);
+      alert("Hubo un error al guardar la respuesta");
+    }
   };
 
   return (
@@ -572,9 +440,9 @@ const Seguimiento = () => {
           <Modal.Title>Vista Previa del Oficio</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {{ ...formData, nombre_archivo: "", pdf: null } ? (
+          {selectedPdfFileName ? (
             <iframe
-              src={`http://127.0.0.1:8000/buscarRegistros/${{ ...formData, nombre_archivo: "", pdf: null }}`}
+              src={`http://127.0.0.1:8000/descargarArchivo/${selectedPdfFileName}`}
               style={{ width: "100%", height: "500px" }}
               title="Vista previa del PDF"
             />
@@ -588,6 +456,13 @@ const Seguimiento = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal para respuesta */}
+      <ModalRespuesta
+        show={showModalRespuesta}
+        onHide={() => setShowModalRespuesta(false)}
+        onSubmit={handleRespuestaSubmit}
+      />
     </Container>
   );
 };
