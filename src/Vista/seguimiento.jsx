@@ -430,19 +430,19 @@ const Seguimiento = () => {
       />
 
       {/* Modal para vista previa del PDF */}
-      <Modal
+          <Modal
         show={showModalOficio}
         onHide={() => setShowModalOficio(false)}
         size="lg"
         centered
-      >
+    >
         <Modal.Header closeButton>
-          <Modal.Title>Vista Previa del Oficio</Modal.Title>
+            <Modal.Title>Vista Previa del Oficio</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedPdfFileName ? (
+          {{ ...formData, nombre_archivo: "", pdf: null } ? (
             <iframe
-              src={`http://127.0.0.1:8000/descargarArchivo/${selectedPdfFileName}`}
+              src={`http://127.0.0.1:8000/buscarRegistros/${{ ...formData, nombre_archivo: "", pdf: null }}`}
               style={{ width: "100%", height: "500px" }}
               title="Vista previa del PDF"
             />
@@ -451,18 +451,11 @@ const Seguimiento = () => {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModalOficio(false)}>
-            Cerrar
-          </Button>
+            <Button variant="secondary" onClick={() => setShowModalOficio(false)}>
+                Cerrar
+            </Button>
         </Modal.Footer>
       </Modal>
-
-      {/* Modal para respuesta */}
-      <ModalRespuesta
-        show={showModalRespuesta}
-        onHide={() => setShowModalRespuesta(false)}
-        onSubmit={handleRespuestaSubmit}
-      />
     </Container>
   );
 };

@@ -6,7 +6,7 @@ from Modelo.database import get_db
 #CONTROLADORES
 from Controlador.controlLogin import validar_usuario
 from Controlador.controlRecepcionModificar import *
-from Controlador.controlFiles import guardar_archivo
+from Controlador.controlFiles import *
 
 from Controlador.controlCatalogos import catalogoAreas
 #ARCHIVO DE RUTAS DE MAPEO DE LOS ENPOINTS
@@ -56,3 +56,9 @@ async def subir_archivo(
     db: AsyncSession = Depends(get_db),  # Inyecta la sesión asíncrona
 ):
     return await guardar_archivo(pdf, db)  # Llama al controlador de manera asíncrona
+
+
+
+@router.get("/obtenerPdf/{nombre_archivo}")
+async def obtener_pdf(nombre_archivo: str):
+    return await obtener_pdf_controller(nombre_archivo)
