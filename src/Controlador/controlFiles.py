@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, UploadFile, Depends
+from fastapi import HTTPException, UploadFile 
+from fastapi.responses import FileResponse
 from datetime import datetime
 import os
 import shutil
@@ -36,3 +37,25 @@ async def guardar_archivo(pdf: UploadFile, db: AsyncSession) -> dict:
         # Revertir la transacción en caso de error (aunque no hay inserción, es buena práctica)
         await db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al subir el archivo: {str(e)}")
+    
+async def obtener_pdf_controller(nombre_archivo: str):
+    """
+    Controlador para obtener un archivo PDF por su nombre.
+
+    Parámetros:
+    - nombre_archivo: Nombre del archivo PDF que se desea obtener.
+
+    Retorna:
+    - El archivo PDF si existe.
+    - Un error 404 si el archivo no se encuentra.
+    """
+    # Ruta de la carpeta donde se guardan los archivos
+    carpeta = "recibosPrueba"
+    file_path = os.path.join(carpeta, nombre_archivo)
+
+    # Verificar si el archivo existe
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+
+    # Devolver el archivo como respuesta
+    return FileResponse(file_path, media_type="application/pdf")
