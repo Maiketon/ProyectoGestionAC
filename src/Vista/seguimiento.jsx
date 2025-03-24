@@ -8,8 +8,10 @@ import jsPDF from 'jspdf';
 
 // MODALES O COMPONENTES
 import ModalModificar from "./Modales/modalModificar.jsx"; // Ajusta la ruta según tu estructura de carpetas
+import ModalRespuesta from "./Modales/modalRespuesta.jsx"; // Ajusta la ruta según tu estructura de carpetas
 import LogoAlcaldia from "./Utils/Images/Logo_AC.png";
 import LogoAlcaldia2 from "./Utils/Images/Logo_AC02.png";
+
 // Definimos months y years fuera del componente para evitar cambios en la referencia
 const months = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -88,10 +90,11 @@ const Seguimiento = () => {
   ];*/
 
   const [areas, setAreas] = useState([]); // Estado para las áreas
-  const [showModalModificar, setShowModalModificar] = useState(false); // Estado para el modal
+  const [showModalModificar, setShowModalModificar] = useState(false); // Estado para el modal de modificar
+  const [showModalRespuesta, setShowModalRespuesta] = useState(false); // Estado para el modal de respuesta
   const [showModalOficio, setShowModalOficio] = useState(false); // Estado para el modal de oficio
   const [selectedPdfFileName, setSelectedPdfFileName] = useState(""); // Estado para el nombre del archivo PDF
-  const [selectedRecord, setSelectedRecord] = useState(null); // Registro seleccionado para modificar
+  const [selectedRecord, setSelectedRecord] = useState(null); // Registro seleccionado para modificar o responder
   const [formData, setFormData] = useState({
     fecha: "",
     referencia: "",
@@ -171,8 +174,6 @@ const Seguimiento = () => {
     borderColor: "#007bff", // Estilo por defecto
   });
 
-  
-  
   const handleAction = async (action, item) => {
     switch (action) {
       case "oficio":
@@ -234,36 +235,36 @@ const Seguimiento = () => {
         }
   
         // Cargar los datos del registro seleccionado en el formulario
-        setSelectedRecord(item);
-        setFormData({
-          fecha: item.fecha,
-          referencia: item.referencia,
-          cargo: item.cargo,
-          remitente: item.remitente,
-          procedencia: item.dependencia,
-          fechaOficio: item.noOficio,
-          indicacion: item.indicacion,
-          atencion: item.atencion, // Esto debería mapearse al ID del área si tienes un mapeo
-          asunto: "", // Ajusta según los datos reales
-          copia1: "",
-          copia2: "",
-          copia3: "",
-          pdf: null,
-          leyenda: "1",
-          urgente: "1",
-        });
-        setShowModalModificar(true);
-        break;
+      //  setSelectedRecord(item);
+      //  setFormData({
+      //    fecha: item.fecha,
+      //    referencia: item.referencia,
+      //    cargo: item.cargo,
+      //    remitente: item.remitente,
+      //    procedencia: item.dependencia,
+      //    fechaOficio: item.noOficio,
+      //    indicacion: item.indicacion,
+      //    atencion: item.atencion, // Esto debería mapearse al ID del área si tienes un mapeo
+      //    asunto: "", // Ajusta según los datos reales
+      //    copia1: "",
+      //    copia2: "",
+      //    copia3: "",
+      //    pdf: null,
+      //    leyenda: "1",
+      //    urgente: "1",
+      //  });
+      //  setShowModalModificar(true);
+      //  break;
   
       case "respuesta":
-        alert(`Generar Respuesta para: ${item.volante}`);
-        break;
+        setSelectedRecord(item); // Guardar el registro seleccionado
+        setShowModalRespuesta(true); // Abrir el modal de respuesta
   
       default:
         break;
     }
   };
-  
+
   const generatePDF = (item) => {
       const doc = new jsPDF();
   
@@ -403,6 +404,36 @@ const Seguimiento = () => {
       // Guardar el PDF
       doc.save(`volante_${item.volante}.pdf`);
   };
+
+  
+  // Función para manejar el envío del formulario del modal de respuesta
+  const handleRespuestaSubmit = async (data) => {
+    if (!selectedRecord) return;
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("id_registro", selectedRecord.id_registro);
+      formDataToSend.append("respuesta", data.respuesta);
+      if (data.pdf) {
+        formDataToSend.append("pdf", data.pdf);
+      }
+      const response = await axios.post("http://127.0.0.1:8000/guardarRespuesta", formDataToSend, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      if (response.status === 200) {
+        alert("Respuesta guardada exitosamente");
+        // Opcional: Actualizar la tabla después de guardar
+        handleSearch();
+      } else {
+        throw new Error("Error al guardar la respuesta");
+      }
+    } catch (error) {
+      console.error("Error al guardar la respuesta:", error);
+      alert("Hubo un error al guardar la respuesta");
+    }
+  }
 
   return (
     <Container className="py-4">
@@ -588,6 +619,14 @@ const Seguimiento = () => {
             </Button>
         </Modal.Footer>
     </Modal>
+
+    {/* Modal para respuesta */}
+      <ModalRespuesta
+        show={showModalRespuesta}
+        onHide={() => setShowModalRespuesta(false)}
+        onSubmit={handleRespuestaSubmit}
+      />
+
     </Container>
   );
 };
