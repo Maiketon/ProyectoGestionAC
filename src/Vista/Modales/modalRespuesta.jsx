@@ -1,35 +1,19 @@
-// src/Vista/Modales/ModalRespuesta.jsx
 import React, { useState } from "react";
 import { Modal, Button, Form, Table } from "react-bootstrap";
-
+import axios from "axios";
 const ModalRespuesta = ({
   show,
   onHide,
-  onSubmit, // Callback para manejar el envío de datos
-  respuestasPrevias = [
-    // Ejemplo 1: Respuesta con adjunto
-    {
-      respuesta: "Se coordinó una reunión para dar seguimiento al tema.",
-      fecha: "2025-03-20",
-      adjunto: "seguimiento_2025_03_20.pdf",
-    },
-    // Ejemplo 2: Respuesta sin adjunto
-    {
-      respuesta: "Se envió un correo al área correspondiente para su atención.",
-      fecha: "2025-03-22",
-      adjunto: null,
-    },
-  ], // Prop para recibir las respuestas previas desde el padre (ahora un array con ejemplos)
+  onSubmit,
+  respuestasPrevias = [],
+  selectedRecord
 }) => {
-  // Estado para manejar los datos del formulario
   const [formData, setFormData] = useState({
-    respuesta: "", // Campo para la nueva respuesta
+    respuesta: "",
     pdf: null,
   });
+  const [pdfFileName, setPdfFileName] = useState("");
 
-  const [pdfFileName, setPdfFileName] = useState(""); // Estado para mostrar el nombre del archivo PDF seleccionado
-
-  // Manejar cambios en los campos del formulario
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "pdf") {
@@ -46,11 +30,84 @@ const ModalRespuesta = ({
     }
   };
 
-  // Manejar el envío del formulario
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData); // Llamar a la función onSubmit pasada como prop
-    onHide(); // Cerrar el modal después de guardar
+    
+    if (!formData.respuesta.trim()) {
+      alert("Por favor, escribe una respuesta antes de guardar");
+      return;
+    }
+
+    try {
+      // Validar que tenemos el registro seleccionado
+      if (!selectedRecord || !selectedRecord.id_registro) {
+        throw new Error("No se ha seleccionado un registro válido");
+      }
+
+      const idUsuario = localStorage.getItem('id_user');
+      if (!idUsuario) {
+        throw new Error("Usuario no autenticado");
+      }
+
+      // Subir archivo si existe
+      let nombreArchivo = "Sin archivo";
+      if (formData.pdf) {
+        const formDataPdf = new FormData();
+        formDataPdf.append('pdf', formData.pdf);
+        
+        const uploadResponse = await axios.post(
+          'http://127.0.0.1:8000/subirArchivoRespuesta',
+          formDataPdf,
+          { 
+            headers: { 
+              'Content-Type': 'multipart/form-data',
+            } 
+          }
+        );
+        nombreArchivo = uploadResponse.data.nombre_archivo;
+      }
+
+      // Registrar la respuesta
+      await axios.post(
+        'http://127.0.0.1:8000/registrarRespuesta',
+        {
+          respuesta: formData.respuesta,
+          id_usuario: idUsuario,
+          id_registro: selectedRecord.id_registro, // Usar el ID del registro seleccionado
+          nombre_archivo_respuesta: nombreArchivo
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      // Cerrar y limpiar
+      onHide();
+      setFormData({ respuesta: '', pdf: null });
+      setPdfFileName('');
+      alert('Respuesta guardada correctamente');
+
+    } catch (error) {
+      console.error('Error:', error);
+      alert(error.response?.data?.detail || 
+           error.response?.data?.message || 
+           error.message || 
+           'Error al guardar respuesta');
+    }
+  };
+
+  // Función para abrir adjuntos
+  const handleOpenAdjunto = (nombreArchivo) => {
+    if (nombreArchivo) {
+      window.open(
+        `http://127.0.0.1:8000/obtenerPdf/${nombreArchivo}`,
+        '_blank',
+        'noopener,noreferrer'
+      );
+    }
   };
 
   return (
@@ -60,7 +117,6 @@ const ModalRespuesta = ({
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
-          {/* Tabla para mostrar respuestas previas */}
           <Form.Group controlId="respuestasPrevias" className="mb-3">
             <Form.Label>Respuestas previas:</Form.Label>
             {respuestasPrevias.length > 0 ? (
@@ -77,7 +133,20 @@ const ModalRespuesta = ({
                     <tr key={index}>
                       <td>{previa.respuesta}</td>
                       <td>{previa.fecha}</td>
-                      <td>{previa.adjunto ? previa.adjunto : "Sin adjunto"}</td>
+                      <td>
+                      {previa.adjunto ? (
+                          <a 
+                            href="#" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleOpenAdjunto(previa.adjunto);
+                            }}
+                            style={{ cursor: 'pointer', color: '#007bff' }}
+                          >
+                            {previa.adjunto}
+                          </a>
+                        ) : "Sin adjunto"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -87,7 +156,6 @@ const ModalRespuesta = ({
             )}
           </Form.Group>
 
-          {/* Campo para la nueva respuesta */}
           <Form.Group controlId="respuesta" className="mb-3">
             <Form.Label>Respuesta:</Form.Label>
             <Form.Control
@@ -97,12 +165,11 @@ const ModalRespuesta = ({
               value={formData.respuesta}
               onChange={handleChange}
               placeholder="Escribe tu respuesta aquí..."
-              maxLength={500} // Límite opcional, puedes ajustarlo según tus necesidades
+              maxLength={500}
               required
             />
           </Form.Group>
 
-          {/* Campo para subir PDF */}
           <Form.Group controlId="pdf" className="mb-3">
             <Form.Label>Subir PDF:</Form.Label>
             <Form.Control

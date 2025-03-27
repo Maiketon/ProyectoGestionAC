@@ -23,15 +23,26 @@ async def formulario_recepcion(datosForm: dict, db: AsyncSession = Depends(get_d
     print("📥 Datos recibidos en FastAPI:", datosForm)  # <-- Agrega esto
     return await enviarDatosRecibo(datosForm, db)
 
+#Obtiene la información del registro en cuestión
 @router.post("/modificarObtenerInfo")
 async def obtener_infoModificar(id_registro: dict, db:AsyncSession= Depends(get_db)):
     return await obtenerInfoRegistro(id_registro,db)
 
+#Obtiene la información de respuestas relacionadas a ese recibo
+# router.py
+@router.post("/consultarRespuestas")
+async def obtener_respuestas(informacion_registro: dict, db: AsyncSession = Depends(get_db)):
+    print("Endpoint recibe: ",informacion_registro)
+    return await obtenerRespuestasLigadas(informacion_registro, db)
+
+
+
+#Endpoint para otener registros en seguimiento segun el filtro de año,mes y volante
 @router.post("/buscarRegistros")
 async def buscar_registrosFiltrados(filtro: dict, db:AsyncSession=Depends(get_db)):
     return await registrosFiltados(filtro,db)
 
-
+#Consulta de registros para el boton de consulta
 @router.post("/consultarRegistros")
 async def consultarMesAnio(filtro: dict, db:AsyncSession=Depends(get_db)):
     return await consultar_MesAnio(filtro,db)
@@ -58,7 +69,22 @@ async def subir_archivo(
     return await guardar_archivo(pdf, db)  # Llama al controlador de manera asíncrona
 
 
+@router.post("/subirArchivoRespuesta")
+async def subir_archivo_respuesta(
+    pdf: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    return await guardar_archivo_respuesta(pdf, db)
+
 
 @router.get("/obtenerPdf/{nombre_archivo}")
 async def obtener_pdf(nombre_archivo: str):
     return await obtener_pdf_controller(nombre_archivo)
+
+
+@router.post("/registrarRespuesta")
+async def registrar_respuesta(
+    respuesta_data: dict,
+    db: AsyncSession = Depends(get_db)
+):
+    return await registrar_respuesta_controller(respuesta_data, db)

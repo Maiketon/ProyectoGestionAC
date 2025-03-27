@@ -4,7 +4,8 @@ from fastapi.responses import FileResponse
 from datetime import datetime
 import os
 import shutil
-from Modelo.modeloRecepcionModificar import Recibo
+from Modelo.modeloRecepcionModificar import *
+from Modelo.modeloRespuestas import *
 
 async def guardar_archivo(pdf: UploadFile, db: AsyncSession) -> dict:
     try:
@@ -59,3 +60,30 @@ async def obtener_pdf_controller(nombre_archivo: str):
 
     # Devolver el archivo como respuesta
     return FileResponse(file_path, media_type="application/pdf")
+
+
+async def guardar_archivo_respuesta(pdf: UploadFile, db: AsyncSession) -> dict:
+    try:
+        fecha_actual = datetime.now()
+
+        # Obtener el último incremento para respuestas
+        ultimo_incremento = await Respuestas.obtener_ultimo_incremento(db)
+        nuevo_incremento = ultimo_incremento + 1 if ultimo_incremento else 1
+
+        # Formatear el nombre del archivo
+        nombre_archivo = f"respuesta_{nuevo_incremento:05d}.pdf"
+
+        # Crear la carpeta si no existe
+        if not os.path.exists("recibosPrueba"):
+            os.makedirs("recibosPrueba")
+
+        # Guardar el archivo
+        file_path = f"recibosPrueba/{nombre_archivo}"
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(pdf.file, buffer)
+            
+
+        return {"nombre_archivo": nombre_archivo}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al subir el archivo: {str(e)}")

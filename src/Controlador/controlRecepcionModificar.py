@@ -1,11 +1,12 @@
 from datetime import datetime
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from Modelo.modeloRecepcionModificar import Recibo  # Importa el modelo Recibo
+from Modelo.modeloRespuestas import Respuestas
 from Modelo.database import get_db
-#from Controlador.crypto_utils import cifrar_dato, descifrar_dato
+from Controlador.crypto_utils import cifrar_dato, descifrar_dato
 
-
+#Funcion que envia los datos del formulario de recepcion al modelo
 async def enviarDatosRecibo(datosForm: dict, db: AsyncSession = Depends(get_db)):
     try:
         print("📥 Datos recibidos en FastAPI:", datosForm)
@@ -52,7 +53,7 @@ async def enviarDatosRecibo(datosForm: dict, db: AsyncSession = Depends(get_db))
         print("❌ Error en enviarDatosRecibo:", str(e))
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error en enviarDatosRecibo: {str(e)}")
-    
+#Funcion que obtiene los registros filtrados en la sección de seguimiento
 async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
     try:
         # Validar que los filtros necesarios estén presentes
@@ -100,7 +101,7 @@ async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al buscar registros: {str(e)}")
 
-
+#Funcion que obtiene la información del registro completo en seguimiento
 async def obtenerInfoRegistro(id_registro: dict, db: AsyncSession = Depends(get_db)):
     """
     Obtiene la información de un registro por su ID.
@@ -159,6 +160,8 @@ async def obtenerInfoRegistro(id_registro: dict, db: AsyncSession = Depends(get_
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error al obtener el registro: {str(e)}")
     
+    
+    #Obtiene registro filtrados para seguimiento
 async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
     """
     Obtiene los registros filtrados por año, mes y (opcionalmente) volante.
@@ -209,8 +212,94 @@ async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
             status_code=500,
             detail=f"Error al buscar registros: {str(e)}"
         )
+
+
+async def obtenerRespuestasLigadas(informacion_registro: dict, db: AsyncSession):
+    print("Entrando a Control")
+    try:
+        # 1. Validación básica de estructura
+        if not informacion_registro:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Datos de solicitud inválidos"
+            )
+
+        # 2. Descifrar ID de usuario directamente
+        id_usuario = descifrar_dato(informacion_registro["id_usuario"])
+        
+        # 3. Obtener ID de recibo directamente
+        id_recibo = informacion_registro["id_registro"]
+
+        # 4. Obtener respuestas
+        respuestas = await Respuestas.obtener_por_recibo(db, id_recibo)
+        
+        # 5. Formatear respuesta
+        return {
+            "success": True,
+            "count": len(respuestas),
+            "respuestas": [
+                {
+                    "id": r.id_respuestas,
+                    "respuesta": r.respuesta,
+                    "fecha": r.fecha_crea.isoformat(),
+                    "archivo": r.nombre_archivo_respuesta if r.nombre_archivo_respuesta not in [None, "Sin archivo"] else None,
+                    "usuario_id": r.fk_usuario_responde,
+                    "es_propietario": r.fk_usuario_responde == id_usuario
+                }
+                for r in respuestas
+            ],
+            "metadata": {
+                "recibo_id": id_recibo,
+                "usuario_consulta": id_usuario,
+                "consulta_timestamp": datetime.now().isoformat()
+            }
+        }
+        
+    except KeyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Falta campo obligatorio: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error interno al procesar la solicitud: {str(e)}"
+        )
     
 
+async def registrar_respuesta_controller(respuesta_data: dict, db: AsyncSession):
+    try:
+        # Validación básica
+        required_fields = ["respuesta", "id_usuario", "id_registro"]
+        for field in required_fields:
+            if not respuesta_data.get(field):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Campo requerido faltante: {field}"
+                )
+
+        # Insertar usando el modelo
+        id_respuesta = await Respuestas.crear_respuesta(
+            db=db,
+            respuesta=respuesta_data["respuesta"],
+            id_usuario=int(descifrar_dato(respuesta_data["id_usuario"])),  # Pasamos el ID cifrado
+            id_registro=respuesta_data["id_registro"],
+            nombre_archivo=respuesta_data.get("nombre_archivo_respuesta", "Sin archivo")
+        )
+
+        return {
+            "success": True,
+            "id_respuesta": id_respuesta,
+            "message": "Respuesta registrada exitosamente"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al registrar respuesta: {str(e)}"
+        )
     #FUNCIONES PARA EL COMPONENTE DE CONSULTAR
     
 async def consultar_MesAnio(filtro: dict, db: AsyncSession = Depends(get_db)):

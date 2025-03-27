@@ -105,3 +105,15 @@ ALTER COLUMN id_nombre_archivo SET DEFAULT nextval('nombre_archivos_id_nombrea_s
 ALTER TABLE public.nombre_archivos
 ALTER COLUMN id_nombre_archivo
 SET DEFAULT nextval ('nombre_archivos_id_nombrea_seq');
+
+
+
+-- Creamos secuencia para el PK de respuestas ----
+CREATE SEQUENCE pk_respuestas_seq START 1;
+ALTER TABLE public.respuestas 
+ALTER COLUMN id_respuestas SET DEFAULT nextval('pk_respuestas_seq');
+
+
+ALTER TABLE public.respuestas
+ALTER COLUMN id_respuestas
+SET DEFAULT nextval ('pk_respuestas_seq');

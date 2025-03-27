@@ -174,6 +174,8 @@ const Seguimiento = () => {
     borderColor: "#007bff", // Estilo por defecto
   });
 
+  // Agrega este estado al inicio de tu componente
+const [respuestasData, setRespuestasData] = useState([]);
   const handleAction = async (action, item) => {
     switch (action) {
       case "oficio":
@@ -255,10 +257,54 @@ const Seguimiento = () => {
       //  });
       //  setShowModalModificar(true);
       //  break;
-  
       case "respuesta":
-        setSelectedRecord(item); // Guardar el registro seleccionado
-        setShowModalRespuesta(true); // Abrir el modal de respuesta
+        try {
+          console.log("Consultando respuestas para recibo:", item.id_registro);
+          
+          const idUsuarioCifrado = localStorage.getItem('id_user');
+    
+          const response = await axios.post(
+            "http://127.0.0.1:8000/consultarRespuestas",
+            { 
+              id_registro: item.id_registro,
+              id_usuario: idUsuarioCifrado
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+    
+          console.log("Respuesta del backend:", response.data);
+    
+          const respuestasParaModal = (response.data?.respuestas || []).map(resp => ({
+            id: resp.id || 0,
+            respuesta: resp.respuesta || "[Sin texto]",
+            fecha: resp.fecha ? new Date(resp.fecha).toLocaleDateString('es-MX', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            }) : "Sin fecha",
+            adjunto: resp.archivo || null,
+            es_mio: resp.es_propietario || false
+          }));
+    
+          setRespuestasData(respuestasParaModal);
+          setSelectedRecord(item);
+          setShowModalRespuesta(true);
+    
+        } catch (error) {
+          console.error("Error al obtener respuestas:", error);
+          setRespuestasData([]);
+          setShowModalRespuesta(true);
+          
+          const errorMessage = error.response?.data?.detail || 
+                              error.message || 
+                              "Error al cargar respuestas";
+          alert(errorMessage);
+        }
+        break;
   
       default:
         break;
@@ -625,8 +671,9 @@ const Seguimiento = () => {
         show={showModalRespuesta}
         onHide={() => setShowModalRespuesta(false)}
         onSubmit={handleRespuestaSubmit}
+        respuestasPrevias={respuestasData}
+        selectedRecord={selectedRecord} // Pasar el registro completo
       />
-
     </Container>
   );
 };
