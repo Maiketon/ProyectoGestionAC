@@ -9,8 +9,8 @@ import jsPDF from 'jspdf';
 // MODALES O COMPONENTES
 import ModalModificar from "./Modales/modalModificar.jsx"; // Ajusta la ruta según tu estructura de carpetas
 import ModalRespuesta from "./Modales/modalRespuesta.jsx"; // Ajusta la ruta según tu estructura de carpetas
-import LogoAlcaldia from "./Utils/Images/Logo_AC.png";
-import LogoAlcaldia2 from "./Utils/Images/Logo_AC02.png";
+import LogoAlcaldia from "./Utils/Images/Logo_AC.jpg";
+import LogoAlcaldia2 from "./Utils/Images/Logo_AC02.jpg";
 
 // Definimos months y years fuera del componente para evitar cambios en la referencia
 const months = [
@@ -185,6 +185,7 @@ const [respuestasData, setRespuestasData] = useState([]);
         break;
   
       case "imprimir":
+        console.log(item);
         generatePDF(item); // Llamamos a la función para generar el PDF
         break;
   
@@ -312,144 +313,166 @@ const [respuestasData, setRespuestasData] = useState([]);
   };
 
   const generatePDF = (item) => {
-      const doc = new jsPDF();
-  
-      // Tamaño de los logos (ajusta según sea necesario)
-      const logoWidth = 25; // Aumentamos el tamaño de los logos
-      const logoHeight = 25;
-  
-      // Agregar los logos en el encabezado
-      doc.addImage(LogoAlcaldia, 'PNG', 10, 10, logoWidth, logoHeight); // Logo a la izquierda
-      doc.addImage(LogoAlcaldia2, 'PNG', doc.internal.pageSize.width - 10 - logoWidth, 10, logoWidth, logoHeight); // Logo a la derecha
-  
-      // Centrar el texto entre los dos logos
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      const text = "Coordinación General de Desarrollo y Buena Administración";
-      const textWidth = doc.getTextWidth(text);
-      const centerX = (doc.internal.pageSize.width - textWidth) / 2;
-      doc.text(text, centerX, 20 + logoHeight / 2); // Ajustar la posición vertical del texto
-  
-      doc.setFontSize(12);
-      const text2 = "Volante de Correspondencia";
-      const textWidth2 = doc.getTextWidth(text2);
-      const centerX2 = (doc.internal.pageSize.width - textWidth2) / 2;
-      doc.text(text2, centerX2, 30 + logoHeight / 2); // Ajustar la posición vertical del texto
-  
-      // Información del Volante (etiquetas en negritas, variables en texto normal)
-      let yOffset = 20 + logoHeight; // Posición inicial después del encabezado
-  
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text("Fecha:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.fecha}`, 40, yOffset); // Ajustar la posición del valor
-  
-      yOffset += 8; // Reducir el interlineado
-      doc.setFont('helvetica', 'bold');
-      doc.text("Volante:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.volante}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Referencia:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.referencia}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Atención:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.titular_atencion}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Cargo:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.cargo}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Remitente:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.remitente}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Cargo del Remitente:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.cargo}`, 60, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Procedencia:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.dependencia}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Fecha y No. de Oficio:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.noOficio}`, 60, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Asunto:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.asunto}`, 40, yOffset);
-  
-      yOffset += 8;
-      doc.setFont('helvetica', 'bold');
-      doc.text("Indicación:", 10, yOffset);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${item.indicacion}`, 40, yOffset);
-  
-      // Definir yOffset fuera del bloque if
-      yOffset += 16; // Espacio adicional antes de las copias
-  
-      // Agregar las copias para, si las 3 copia_para están vacías no poner el campo C.C.P:
-      if (item.copia_para || item.copia_para2 || item.copia_para3) {
-          doc.setFont('helvetica', 'bold');
-          doc.text("C.C.P:", 10, yOffset);
-          yOffset += 8; // Incrementar la posición para las copias
-  
-          if (item.copia_para) {
-              doc.setFont('helvetica', 'normal');
-              doc.text(`- ${item.copia_para_nombre} (${item.titular_copia_para})`, 10, yOffset);
-              yOffset += 8; // Incrementar la posición para la siguiente copia
-          }
-          if (item.copia_para2) {
-              doc.setFont('helvetica', 'normal');
-              doc.text(`- ${item.copia_para2_nombre} (${item.titular_copia_para2})`, 10, yOffset);
-              yOffset += 8; // Incrementar la posición para la siguiente copia
-          }
-          if (item.copia_para3) {
-              doc.setFont('helvetica', 'normal');
-              doc.text(`- ${item.copia_para3_nombre} (${item.titular_copia_para3})`, 10, yOffset);
-              yOffset += 8; // Incrementar la posición para la siguiente copia
-          }
-      }
-  
-      // Validar si el valor de leyenda es 1 o 2
-      if (item.leyenda === "1" || item.leyenda === "2") {
-          doc.setFontSize(8);
-          doc.setFont('helvetica', 'normal');
-          doc.text("GVS ORNELAS", 10, yOffset + 10); // Ajustar la posición según sea necesario
-          yOffset += 16; // Incrementar la posición para la firma
-      }
-  
-      // Firma y cargo (centrado y en negritas)
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text("ATENTAMENTE", doc.internal.pageSize.width / 2, yOffset + 20, { align: 'center' }); // Centrado
-      doc.text("Sergio Alfredo Chávez López", doc.internal.pageSize.width / 2, yOffset + 30, { align: 'center' }); // Centrado
-      doc.setFont('helvetica', 'normal');
-      doc.text("Coordinador General de Planeación del Desarrollo y Buena Administración", doc.internal.pageSize.width / 2, yOffset + 40, { align: 'center' }); // Centrado
-  
-      // Guardar el PDF
-      doc.save(`volante_${item.volante}.pdf`);
-  };
+    const doc = new jsPDF();
+
+    // Solución para fuentes (evitar errores con 'arial')
+    const fontList = doc.getFontList();
+    const availableFonts = Array.isArray(fontList) ? fontList : Object.keys(fontList);
+    const defaultFont = availableFonts.includes('helvetica') ? 'helvetica' : availableFonts[0];
+
+    // Obtener ancho y alto de la página
+    const pageWidth = doc.internal.pageSize.getWidth ? doc.internal.pageSize.getWidth() : doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.getHeight ? doc.internal.pageSize.getHeight() : doc.internal.pageSize.height;
+
+    // ======================
+    // Imagen del encabezado
+    // Queremos que ocupe la mitad del ancho
+    const headerImageWidth = pageWidth / 2;
+    const headerImageHeight = 25; // Ajusta según la proporción de la imagen
+    // Posición: x=10 (o 0 si quieres sin margen), y=10
+    doc.addImage(LogoAlcaldia, 'jpg', 10, 10, 65, 25);
+
+    // Ajustar yOffset para dejar espacio debajo del encabezado
+    let yOffset = 10 + headerImageHeight + 5;
+
+    // Validar nivel de prioridad
+    if (item.nivel_prioridad === 1 || item.nivel_prioridad === 2) {
+        doc.setFontSize(14);
+        doc.setFont(defaultFont, 'bold');
+        const prioridadText = item.nivel_prioridad === 1 ? "URGENTE" : "EXTRA URGENTE";
+        const textWidth = doc.getStringUnitWidth(prioridadText) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+        const centerX = (pageWidth - textWidth) / 2;
+        doc.text(prioridadText, centerX, yOffset);
+        yOffset += 2;
+    }
+
+    // Texto del encabezado (centrado)
+    doc.setFontSize(14);
+    doc.setFont(defaultFont, 'bold');
+    const text = "Coordinación General de Desarrollo y Buena Administración";
+    const textWidth = doc.getStringUnitWidth(text) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+    const centerX = (pageWidth - textWidth) / 2;
+    doc.text(text, centerX, yOffset + 5);
+
+    doc.setFontSize(12);
+    const text2 = "Volante de Correspondencia";
+    const textWidth2 = doc.getStringUnitWidth(text2) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+    const centerX2 = (pageWidth - textWidth2) / 2;
+    doc.text(text2, centerX2, yOffset + 10);
+
+    // ======================
+    // Información del Volante (alineado a la izquierda)
+    // Imprimir Fecha, Volante y Referencia en la misma línea
+    yOffset += 18;
+    const col1X = 10;
+    const col2X = 60;
+    const col3X = 100;
+
+    // Etiquetas en negrita
+    doc.setFont(defaultFont, 'bold');
+    doc.text("Fecha:", col1X, yOffset);
+    doc.text("Volante:", col2X, yOffset);
+    doc.text("Referencia:", col3X, yOffset);
+
+    // Valores en normal, con un pequeño desplazamiento a la derecha
+    const valueOffset = 25;
+    doc.setFont(defaultFont, 'normal');
+    doc.text(item.fecha || '', col1X + valueOffset, yOffset);
+    doc.text(item.volante || '', col2X + valueOffset, yOffset);
+    doc.text(item.referencia || '', col3X + valueOffset, yOffset);
+
+    yOffset += 10; // Incrementamos el espacio entre líneas
+
+    // Función auxiliar para imprimir etiqueta y valor en una línea
+    const addLabeledText = (label, value, y) => {
+        doc.setFont(defaultFont, 'bold');
+        doc.text(`${label}:`, 10, y);
+        doc.setFont(defaultFont, 'normal');
+        doc.text(value, 55, y);
+    };
+
+    // Resto de la información
+    addLabeledText("Atención", item.titular_atencion || '', yOffset);
+    yOffset += 10;
+
+    addLabeledText("Cargo", item.cargo || '', yOffset);
+    yOffset += 10;
+
+    // Se imprime Remitente y en la siguiente línea su Cargo para evitar sobreposición
+    addLabeledText("Remitente", item.remitente || '', yOffset);
+    yOffset += 10;
+    addLabeledText("Cargo del Remitente", item.cargo_remitente || item.cargo || '', yOffset);
+    yOffset += 10;
+
+    addLabeledText("Procedencia", item.dependencia || '', yOffset);
+    yOffset += 10;
+
+    addLabeledText("Fecha y No. de Oficio", item.noOficio || '', yOffset);
+    yOffset += 10;
+
+    addLabeledText("Asunto", item.asunto || '', yOffset);
+    yOffset += 10;
+
+    addLabeledText("Indicación", item.indicacion || '', yOffset);
+    yOffset += 10;
+
+    // Copias para
+    if (item.copia_para || item.copia_para2 || item.copia_para3) {
+        doc.setFont(defaultFont, 'bold');
+        doc.text("C.C.P:", 10, yOffset);
+        yOffset += 10;
+
+        doc.setFont(defaultFont, 'normal');
+        if (item.copia_para) {
+            doc.text(`- ${item.copia_para_nombre || ''} ${item.titular_copia_para ? `(${item.titular_copia_para})` : ''}`, 15, yOffset);
+            yOffset += 10;
+        }
+        if (item.copia_para2) {
+            doc.text(`- ${item.copia_para2_nombre || ''} ${item.titular_copia_para2 ? `(${item.titular_copia_para2})` : ''}`, 15, yOffset);
+            yOffset += 10;
+        }
+        if (item.copia_para3) {
+            doc.text(`- ${item.copia_para3_nombre || ''} ${item.titular_copia_para3 ? `(${item.titular_copia_para3})` : ''}`, 15, yOffset);
+            yOffset += 10;
+        }
+    }
+
+    // Leyenda central
+    doc.setFontSize(10);
+    const leyendaText = "Enviar nota informativa a esta coordinación sobre la atención brindada, para el desahogo del volante";
+    const leyendaWidth = doc.getStringUnitWidth(leyendaText) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+    const leyendaX = (pageWidth - leyendaWidth) / 2;
+    doc.setFont(defaultFont, 'bold');
+    doc.text(leyendaText, leyendaX, yOffset + 8);
+
+    // Firma y cargo (centrado)
+    yOffset += 20; // Aumentamos el espacio antes de la firma
+    doc.setFontSize(12);
+    doc.setFont(defaultFont, 'bold');
+    doc.text("ATENTAMENTE", pageWidth / 2, yOffset + 20, { align: 'center' });
+
+    // Espacio para firma
+    doc.text("_________________________", pageWidth / 2, yOffset + 15, { align: 'center' });
+
+    // Nombre y cargo
+    doc.text("Sergio Alfredo Chávez López", pageWidth / 2, yOffset + 30, { align: 'center' });
+    doc.setFont(defaultFont, 'normal');
+    doc.text("Coordinador General de Planeación", pageWidth / 2, yOffset + 38, { align: 'center' });
+    doc.text("del Desarrollo y Buena Administración", pageWidth / 2, yOffset + 42, { align: 'center' });
+
+    // ======================
+    // Imagen del pie de página
+    // Queremos que abarque todo el ancho del renglón
+    const footerImageHeight = 25; // Ajusta según la proporción de la imagen
+    // La posición Y se coloca restando la altura deseada al alto total de la página
+    doc.addImage(LogoAlcaldia2, 'jpg', 0, pageHeight - footerImageHeight, pageWidth, footerImageHeight);
+
+    // Abrir PDF en nueva ventana
+    doc.output('dataurlnewwindow', {
+        filename: `volante_${item.volante || 'documento'}.pdf`
+    });
+};
+
 
   
   // Función para manejar el envío del formulario del modal de respuesta
