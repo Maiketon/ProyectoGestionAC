@@ -176,16 +176,31 @@ const Seguimiento = () => {
 
   // Agrega este estado al inicio de tu componente
 const [respuestasData, setRespuestasData] = useState([]);
-  const handleAction = async (action, item) => {
+  const handleAction = async (action, item, e) => {
+    e.stopPropagation(); // Detener la propagación del evento
+
+    // Depurar la acción que se está ejecutando
+    console.log("Acción ejecutada:", action);
+    console.log("Estado inicial - showModalModificar:", showModalModificar);
+    console.log("Estado inicial - showModalRespuesta:", showModalRespuesta);
+
+    // Asegurarse de que solo un modal esté abierto a la vez
+    if (action === "modificar") {
+      setShowModalRespuesta(false); // Cerrar el modal de respuesta si está abierto
+    } else if (action === "respuesta") {
+      setShowModalModificar(false); // Cerrar el modal de modificar si está abierto
+    }
+
     switch (action) {
       case "oficio":
+        console.log("Abriendo modal de oficio...");
         // Establecer el nombre del archivo PDF y abrir el modal
         setSelectedPdfFileName(item.nombre_archivo || "");
         setShowModalOficio(true);
         break;
   
       case "imprimir":
-        console.log(item);
+        console.log("Generando PDF...");
         generatePDF(item); // Llamamos a la función para generar el PDF
         break;
   
@@ -222,48 +237,25 @@ const [respuestasData, setRespuestasData] = useState([]);
               leyenda: String(data.leyenda) || "1", // Convertir a string
               urgente: String(data.nivel_prioridad) || "1", // Convertir a string
             });
-            setShowModalModificar(true);
+            console.log("Abriendo modal de modificar...");
+            setShowModalModificar(true); 
           } else {
             throw new Error("Error al obtener los datos del registro");
           }
         } catch (error) {
-          console.error("Error:", error);
-  
+          console.error("Error en acción modificar:", error);
           // Mostrar detalles del error 422
           if (error.response && error.response.status === 422) {
             console.error("Detalles del error 422:", error.response.data);
           }
-  
           alert("Hubo un error al obtener los datos del registro");
         }
+        break;
   
-        // Cargar los datos del registro seleccionado en el formulario
-      //  setSelectedRecord(item);
-      //  setFormData({
-      //    fecha: item.fecha,
-      //    referencia: item.referencia,
-      //    cargo: item.cargo,
-      //    remitente: item.remitente,
-      //    procedencia: item.dependencia,
-      //    fechaOficio: item.noOficio,
-      //    indicacion: item.indicacion,
-      //    atencion: item.atencion, // Esto debería mapearse al ID del área si tienes un mapeo
-      //    asunto: "", // Ajusta según los datos reales
-      //    copia1: "",
-      //    copia2: "",
-      //    copia3: "",
-      //    pdf: null,
-      //    leyenda: "1",
-      //    urgente: "1",
-      //  });
-      //  setShowModalModificar(true);
-      //  break;
       case "respuesta":
         try {
           console.log("Consultando respuestas para recibo:", item.id_registro);
-          
           const idUsuarioCifrado = localStorage.getItem('id_user');
-    
           const response = await axios.post(
             "http://127.0.0.1:8000/consultarRespuestas",
             { 
@@ -293,13 +285,13 @@ const [respuestasData, setRespuestasData] = useState([]);
     
           setRespuestasData(respuestasParaModal);
           setSelectedRecord(item);
+          console.log("Abriendo modal de respuesta...");
           setShowModalRespuesta(true);
-    
         } catch (error) {
           console.error("Error al obtener respuestas:", error);
           setRespuestasData([]);
-          setShowModalRespuesta(true);
-          
+          console.log("Abriendo modal de respuesta a pesar del error...");
+          setShowModalRespuesta(true); // Abrir el modal incluso si hay un error, para que el usuario pueda interactuar
           const errorMessage = error.response?.data?.detail || 
                               error.message || 
                               "Error al cargar respuestas";
@@ -310,7 +302,10 @@ const [respuestasData, setRespuestasData] = useState([]);
       default:
         break;
     }
-  };
+    // Depurar el estado después de ejecutar la acción
+    console.log("Estado final - showModalModificar:", showModalModificar);
+    console.log("Estado final - showModalRespuesta:", showModalRespuesta);
+    };
 
   const generatePDF = (item) => {
     const doc = new jsPDF();
@@ -605,7 +600,7 @@ const [respuestasData, setRespuestasData] = useState([]);
                         variant="outline-primary"
                         size="sm"
                         className="me-2"
-                        onClick={() => handleAction("oficio", item)}
+                        onClick={(e) => handleAction("oficio", item, e)}
                       >
                         Oficio
                       </Button>
@@ -613,7 +608,7 @@ const [respuestasData, setRespuestasData] = useState([]);
                         variant="outline-secondary"
                         size="sm"
                         className="me-2"
-                        onClick={() => handleAction("imprimir", item)}
+                        onClick={(e) => handleAction("imprimir", item, e)}
                       >
                         Imprimir
                       </Button>
@@ -621,14 +616,14 @@ const [respuestasData, setRespuestasData] = useState([]);
                         variant="outline-warning"
                         size="sm"
                         className="me-2"
-                        onClick={() => handleAction("modificar", item)}
+                        onClick={(e) => handleAction("modificar", item, e)}
                       >
                         Modificar
                       </Button>
                       <Button
                         variant="outline-danger"
                         size="sm"
-                        onClick={() => handleAction("respuesta", item)}
+                        onClick={(e) => handleAction("respuesta", item, e)}
                       >
                         Respuesta
                       </Button>
