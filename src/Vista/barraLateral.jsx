@@ -16,11 +16,11 @@ function BarraLateral({ setPlegado }) {
 
   const handleLogout = (e) => {
     e.preventDefault();
-    localStorage.removeItem("token");
-    localStorage.removeItem("id_user");
-    localStorage.removeItem("type_user");
-    localStorage.removeItem("sUser");
-    window.dispatchEvent(new Event("storage"));
+    // Limpiar completamente el localStorage
+    localStorage.clear();
+    // Verificar que el localStorage esté vacío
+    console.log("localStorage después de limpiar:", localStorage);
+    // Redirigir al login
     navigate("/");
   };
 

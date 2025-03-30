@@ -96,6 +96,13 @@ useEffect(() => {
     };
   }, []);
 
+// Limpiar el localStorage al cargar la página de login
+useEffect(() => {
+  console.log("Limpiando localStorage al cargar la página de login...");
+  localStorage.clear();
+  console.log("localStorage después de limpiar:", localStorage);
+}, []);
+
 // Agregar un useEffect para depurar el estado showModal
 useEffect(() => {
   console.log("Estado showModal actualizado:", showModal);
