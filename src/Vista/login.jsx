@@ -31,43 +31,58 @@ y guardar en almacenamiento local del browser un token de protección de rutas y
   const iniciarSesion = async (event) => {
     event.preventDefault();
     setLoading(true); // Mostrar spinner
-    setTimeout(async () => {
 
     try {
-        console.log(usuario, password);
-        const response = await axios.post("http://127.0.0.1:8000/login", null, {
-          params: { usuario, password }
-        } 
-        );
-    
-     
-        if (response.data.status ==="success") {
-            setEsIncorrecto(false);
+      console.log(usuario, password);
+      const response = await axios.post("http://127.0.0.1:8000/login", null, {
+        params: { usuario, password }
+      });
+  
+      if (response.data.status === "success") {
+        setEsIncorrecto(false);
 
-          console.log("Login exitoso");
-          console.log("Usuario",usuario,"Contraseña",password);
-          localStorage.setItem("token", response.data.access_token); //GUARDA EL TOKEN ANTES DE HACER EL REDIRECCIONAMIENTO//
-          localStorage.setItem("id_user", response.data.id_user); //SE GUARDA EL ID DEL USUARIO QUE ESTA HACIENDO LOGIN //
-          localStorage.setItem("type_user", response.data.type_user); //SE GUARDA EL-TIPO DE USUARIO ADMIN T , NORMAL F
-          localStorage.setItem("sUser", response.data.sUser); //SE GUARDA EL-TIPO DE USUARIO ADMIN T , NORMAL F
+        // Validar el valor de sUser
+        const sUser = response.data.sUser;
+        if (sUser === false) {
+          console.log("sUser es false, mostrando modal...");
+          localStorage.clear(); // Limpiar localStorage para evitar datos residuales
+          setMensajeModal("Inicio de sesión inválida, favor de validar con el área correspondiente ❌");
+          setEsIncorrecto(true);
+          setShowModal(true);
+          // Retrasar el cambio de estado de loading para dar tiempo al modal de mostrarse
           setTimeout(() => {
-            setLoading(false); // Mostrar spinner
-            navigate("/dashboard");
-          }); //SIMULA UNA PETICIÓN AL SERVIDOR PARA QUE SE VISUALICE EL SPINNER//
- 
+            setLoading(false);
+          }, );
+          return; // Detener el flujo si sUser es "false"
         }
-        } 
-        catch (error) {
-        //console.error("Error en la solicitud:", error);
-        console.error("Error en la solicitud se uvicorn:", error.response?.data || error.message);
-        //alert("Usuario o contraseña incorrectos");
-        setMensajeModal("Usuario o contraseña incorrectos ❌");
-        setEsIncorrecto(true);
-        setShowModal(true);
-        setLoading(false);}
-        }, 2500); //Tiempo de espera en segs.
-};
 
+        // Si sUser es "true", continuar con el flujo normal
+        console.log("Login exitoso");
+        console.log("Usuario", usuario, "Contraseña", password);
+        localStorage.setItem("token", response.data.access_token); //GUARDA EL TOKEN ANTES DE HACER EL REDIRECCIONAMIENTO//
+        localStorage.setItem("id_user", response.data.id_user); //SE GUARDA EL ID DEL USUARIO QUE ESTA HACIENDO LOGIN //
+        localStorage.setItem("type_user", response.data.type_user); //SE GUARDA EL-TIPO DE USUARIO ADMIN T , NORMAL F
+        localStorage.setItem("sUser", response.data.sUser); //SE GUARDA EL-TIPO DE USUARIO ADMIN T , NORMAL F
+
+        // Simular una pequeña espera para mostrar el spinner antes de redirigir
+        setTimeout(() => {
+          setLoading(false);
+          navigate("/dashboard");
+        }, 2500); //SIMULA UNA PETICIÓN AL SERVIDOR PARA QUE SE VISUALICE EL SPINNER//
+      }
+    } catch (error) {
+      //console.error("Error en la solicitud:", error);
+      console.error("Error en la solicitud se uvicorn:", error.response?.data || error.message);
+      //alert("Usuario o contraseña incorrectos");
+      setMensajeModal("Usuario o contraseña incorrectos ❌");
+      setEsIncorrecto(true);
+      setShowModal(true);
+      // Retrasar el cambio de estado de loading para dar tiempo al modal de mostrarse
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
+    }
+  };
 
 /*
 Autor: Miguel Angel Montoya Bautista
@@ -81,10 +96,14 @@ useEffect(() => {
     };
   }, []);
 
+// Agregar un useEffect para depurar el estado showModal
+useEffect(() => {
+  console.log("Estado showModal actualizado:", showModal);
+}, [showModal]);
+
 return (
     <>
-
-    loading ? (<SpinnerComponent loading={loading} />)
+    {loading ? (<SpinnerComponent loading={loading} />) : null}
          
     <div className="background-container"
           style={{

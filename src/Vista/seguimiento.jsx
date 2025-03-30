@@ -4,7 +4,7 @@ import axios from "axios";
 import { Container, Row, Col, Form, Table, Button, Modal } from "react-bootstrap";
 
 import jsPDF from 'jspdf';
-  import 'jspdf-autotable';
+import 'jspdf-autotable';
 
 // MODALES O COMPONENTES
 import ModalModificar from "./Modales/modalModificar.jsx"; // Ajusta la ruta según tu estructura de carpetas
@@ -27,14 +27,43 @@ const Seguimiento = () => {
     volante: "",
   });
 
+  // Estado para el error de formato del volante
+  const [volanteError, setVolanteError] = useState("");
+
+  // Estado para el modal de validación de mes/año
+  const [showValidationModal, setShowValidationModal] = useState(false);
+
   const [allData, setAllData] = useState([]); // Reemplaza los datos en crudo con un estado dinámico
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
+
+    // Validar el formato del volante cuando cambia
+    if (name === "volante") {
+      const volantePattern = /^\d{5}$/; // Expresión regular para 5 dígitos exactos
+      if (value && !volantePattern.test(value)) {
+        setVolanteError("El volante debe tener exactamente 5 dígitos numéricos (por ejemplo, 12345)");
+      } else {
+        setVolanteError("");
+      }
+    }
   };
 
   const handleSearch = async () => {
+    // Validar el formato del volante
+    const volantePattern = /^\d{5}$/;
+    if (filters.volante && !volantePattern.test(filters.volante)) {
+      setVolanteError("El volante debe tener exactamente 5 dígitos numéricos (por ejemplo, 12345)");
+      return; // No continuar con la búsqueda si el formato es incorrecto
+    }
+
+    // Validar si hay un valor en "volante" pero no se seleccionó mes ni año
+    if (filters.volante && (!filters.month || !filters.year)) {
+      setShowValidationModal(true);
+      return; // No continuar con la búsqueda
+    }
+
     console.log("haciendo petición de busquea con valores \n");
     console.log(filters);
     console.log("\n");
@@ -180,7 +209,7 @@ const Seguimiento = () => {
   });
 
   // Agrega este estado al inicio de tu componente
-const [respuestasData, setRespuestasData] = useState([]);
+  const [respuestasData, setRespuestasData] = useState([]);
   const handleAction = async (action, item, e) => {
     e.stopPropagation(); // Detener la propagación del evento
 
@@ -313,7 +342,7 @@ const [respuestasData, setRespuestasData] = useState([]);
     console.log("Acción ejecutada:", action);
     console.log("Estado final - showModalModificar:", showModalModificar);
     console.log("Estado final - showModalRespuesta:", showModalRespuesta);
-    };
+  };
 
   const generatePDF = (item) => {
     const doc = new jsPDF();
@@ -474,8 +503,7 @@ const [respuestasData, setRespuestasData] = useState([]);
     doc.output('dataurlnewwindow', {
         filename: `volante_${item.volante || 'documento'}.pdf`
     });
-};
-
+  };
 
   
   // Función para manejar el envío del formulario del modal de respuesta
@@ -562,7 +590,11 @@ const [respuestasData, setRespuestasData] = useState([]);
               name="volante"
               value={filters.volante}
               onChange={handleFilterChange}
+              isInvalid={!!volanteError}
             />
+            <Form.Control.Feedback type="invalid">
+              {volanteError}
+            </Form.Control.Feedback>
           </Form.Group>
         </Col>
 
@@ -665,34 +697,34 @@ const [respuestasData, setRespuestasData] = useState([]);
       />
 
       {/* Modal para vista previa del PDF */}
-          <Modal
+      <Modal
         show={showModalOficio}
         onHide={() => setShowModalOficio(false)}
         size="lg"
         centered
-    >
+      >
         <Modal.Header closeButton>
-            <Modal.Title>Vista Previa del Oficio</Modal.Title>
+          <Modal.Title>Vista Previa del Oficio</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-            {selectedPdfFileName ? (
-                <iframe
-                    src={`http://127.0.0.1:8000/obtenerPdf/${selectedPdfFileName}`} // Ruta del backend para obtener el PDF
-                    style={{ width: "100%", height: "500px" }}
-                    title="Vista previa del PDF"
-                />
-            ) : (
-                <p>No se encontró el archivo PDF para este registro.</p>
-            )}
+          {selectedPdfFileName ? (
+            <iframe
+              src={`http://127.0.0.1:8000/obtenerPdf/${selectedPdfFileName}`} // Ruta del backend para obtener el PDF
+              style={{ width: "100%", height: "500px" }}
+              title="Vista previa del PDF"
+            />
+          ) : (
+            <p>No se encontró el archivo PDF para este registro.</p>
+          )}
         </Modal.Body>
         <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowModalOficio(false)}>
-                Cerrar
-            </Button>
+          <Button variant="secondary" onClick={() => setShowModalOficio(false)}>
+            Cerrar
+          </Button>
         </Modal.Footer>
-    </Modal>
+      </Modal>
 
-    {/* Modal para respuesta */}
+      {/* Modal para respuesta */}
       <ModalRespuesta
         show={showModalRespuesta}
         onHide={() => setShowModalRespuesta(false)}
@@ -700,6 +732,25 @@ const [respuestasData, setRespuestasData] = useState([]);
         respuestasPrevias={respuestasData}
         selectedRecord={selectedRecord} // Pasar el registro completo
       />
+
+      {/* Modal para validación de mes/año */}
+      <Modal
+        show={showValidationModal}
+        onHide={() => setShowValidationModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Validación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Falta seleccionar mes/año</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowValidationModal(false)}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };
