@@ -250,7 +250,8 @@ async def obtenerRespuestasLigadas(informacion_registro: dict, db: AsyncSession)
                     "archivo": r.nombre_archivo_respuesta if r.nombre_archivo_respuesta not in [None, "Sin archivo"] else None,
                     "usuario_id": r.fk_usuario_responde,
                     "es_propietario": r.fk_usuario_responde == id_usuario,
-                    "fecha_respuesta": r.fecha_respuesta
+                    "fecha_respuesta": r.fecha_respuesta,
+                    "fecha_captura": r.fecha_crea
                 }
                 for r in respuestas
             ],
@@ -276,7 +277,7 @@ async def obtenerRespuestasLigadas(informacion_registro: dict, db: AsyncSession)
 async def registrar_respuesta_controller(respuesta_data: dict, db: AsyncSession):
     try:
         # Validación básica
-        required_fields = ["respuesta", "id_usuario", "id_registro"]
+        required_fields = ["respuesta", "id_usuario", "id_registro", "fecha_respuesta"]
         for field in required_fields:
             if not respuesta_data.get(field):
                 raise HTTPException(
@@ -284,13 +285,23 @@ async def registrar_respuesta_controller(respuesta_data: dict, db: AsyncSession)
                     detail=f"Campo requerido faltante: {field}"
                 )
 
+        # Validar formato de fecha
+        try:
+            datetime.strptime(respuesta_data["fecha_respuesta"], "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Formato de fecha inválido. Use YYYY-MM-DD"
+            )
+
         # Insertar usando el modelo
         id_respuesta = await Respuestas.crear_respuesta(
             db=db,
             respuesta=respuesta_data["respuesta"],
-            id_usuario=int(descifrar_dato(respuesta_data["id_usuario"])),  # Pasamos el ID cifrado
+            id_usuario=int(descifrar_dato(respuesta_data["id_usuario"])),
             id_registro=respuesta_data["id_registro"],
-            nombre_archivo=respuesta_data.get("nombre_archivo_respuesta", "Sin archivo")
+            nombre_archivo=respuesta_data.get("nombre_archivo_respuesta", "Sin archivo"),
+            fecha_respuesta=respuesta_data["fecha_respuesta"]
         )
 
         return {

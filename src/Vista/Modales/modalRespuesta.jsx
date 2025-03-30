@@ -88,13 +88,11 @@ const ModalRespuesta = ({
           id_usuario: idUsuario,
           id_registro: selectedRecord.id_registro,
           nombre_archivo_respuesta: nombreArchivo,
-          fecha_captura: fecha_crea,
           fecha_respuesta: fecha_respuesta,
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Content-Type': 'application/json'
           }
         }
       );
@@ -161,20 +159,9 @@ const ModalRespuesta = ({
           <Form.Group controlId="fecha_respuesta" className="mb-3">
             <Form.Label>Fecha de respuesta:</Form.Label>
             <Form.Control
-              type="text"
+              type="date"
               name="fecha_respuesta"
               value={formData.fecha_respuesta || ""}
-              onChange={handleChange}
-              placeholder="Ingresa la fecha (DD/MM/YYYY)"
-            />
-          </Form.Group>
-
-          <Form.Group controlId="fecha_crea" className="mb-3">
-            <Form.Label>Fecha de captura:</Form.Label>
-            <Form.Control
-              type="text"
-              name="fecha_crea"
-              value={formData.fecha_crea || ""}
               onChange={handleChange}
               placeholder="Ingresa la fecha (DD/MM/YYYY)"
             />

@@ -14,7 +14,7 @@ class Respuestas(Base):
     fk_usuario_responde = Column(Integer, nullable=False)
     fk_recibo = Column(Integer, nullable=False)
     nombre_archivo_respuesta = Column(String, nullable=False)
-    fecha_respuesta = Column(String, nullable=False)
+    fecha_respuesta = Column(Date, nullable=False)
     @classmethod
     async def obtener_por_recibo(cls, db: AsyncSession, id_recibo: int):
             """
@@ -56,40 +56,50 @@ class Respuestas(Base):
             raise e
     @classmethod
     async def crear_respuesta(
-            cls,
-            db: AsyncSession,
-            respuesta: str,
-            id_usuario: int,  # ID cifrado
-            id_registro: int,
-            nombre_archivo: str = "Sin archivo"
-        ) -> int:
-            """
-            Crea una nueva respuesta en la base de datos
-            Args:
-                - db: Sesión de base de datos
-                - respuesta: Texto de la respuesta
-                - id_usuario: ID de usuario cifrado
-                - id_registro: ID del registro (fk_recibo)
-                - nombre_archivo: Nombre del archivo adjunto
-            Returns:
-                int: ID de la respuesta creada
-            """
-            try:
-                # No desciframos el ID aquí, se guarda cifrado
-                nueva_respuesta = cls(
-                    respuesta=respuesta,
-                    fecha_crea=datetime.now().date(),
-                    fk_usuario_responde=id_usuario,  # Guardamos el ID cifrado
-                    fk_recibo=id_registro,
-                    nombre_archivo_respuesta=nombre_archivo
-                )
-                
-                db.add(nueva_respuesta)
-                await db.commit()
-                await db.refresh(nueva_respuesta)
-                
-                return nueva_respuesta.id_respuestas
-                
-            except Exception as e:
-                await db.rollback()
-                raise e
+    cls,
+    db: AsyncSession,
+    respuesta: str,
+    id_usuario: int,  # ID cifrado
+    id_registro: int,
+    nombre_archivo: str = "Sin archivo",
+    fecha_respuesta: str = None,  # Cambiado de Date a str para manejar el formato
+) -> int:
+        """
+        Crea una nueva respuesta en la base de datos
+        Args:
+            - db: Sesión de base de datos
+            - respuesta: Texto de la respuesta
+            - id_usuario: ID de usuario cifrado
+            - id_registro: ID del registro (fk_recibo)
+            - nombre_archivo: Nombre del archivo adjunto
+            - fecha_respuesta: Fecha de respuesta en formato string (YYYY-MM-DD)
+        Returns:
+            int: ID de la respuesta creada
+        """
+        try:
+            # Convertir la fecha de string a date si viene
+            fecha_respuesta_date = None
+            if fecha_respuesta:
+                try:
+                    fecha_respuesta_date = datetime.strptime(fecha_respuesta, "%Y-%m-%d").date()
+                except ValueError as e:
+                    raise ValueError(f"Formato de fecha inválido. Use YYYY-MM-DD: {str(e)}")
+
+            nueva_respuesta = cls(
+                respuesta=respuesta,
+                fecha_crea=datetime.now().date(),
+                fk_usuario_responde=id_usuario,  # Guardamos el ID cifrado
+                fk_recibo=id_registro,
+                nombre_archivo_respuesta=nombre_archivo,
+                fecha_respuesta=fecha_respuesta_date  # Asignamos la fecha convertida
+            )
+            
+            db.add(nueva_respuesta)
+            await db.commit()
+            await db.refresh(nueva_respuesta)
+            
+            return nueva_respuesta.id_respuestas
+            
+        except Exception as e:
+            await db.rollback()
+            raise e
