@@ -38,11 +38,16 @@ const Seguimiento = () => {
     console.log("haciendo petición de busquea con valores \n");
     console.log(filters);
     console.log("\n");
+    const idTipoUsuarioCifrado = localStorage.getItem('type_user');
+    const idUsuarioCifrado = localStorage.getItem('id_user');
     try {
+      console.log("enviando al back los valores para buscar registros", filters.year,filters.month,filters.volante,idTipoUsuarioCifrado,idUsuarioCifrado)
       const response = await axios.post("http://127.0.0.1:8000/buscarRegistros", {
         year: filters.year,
         month: filters.month,
         volante: filters.volante,
+        tipoUsuario: idTipoUsuarioCifrado,
+        id_usuario: idUsuarioCifrado
       });
 
       if (response.status === 200) {

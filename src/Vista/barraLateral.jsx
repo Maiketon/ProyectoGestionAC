@@ -16,6 +16,8 @@ function BarraLateral({ setPlegado }) {
     e.preventDefault();
     localStorage.removeItem("token");
     localStorage.removeItem("id_user");
+    localStorage.removeItem("type_user");
+    localStorage.removeItem("sUser");
     window.dispatchEvent(new Event("storage"));
     navigate("/");
   };

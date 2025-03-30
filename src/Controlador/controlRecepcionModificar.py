@@ -54,7 +54,7 @@ async def enviarDatosRecibo(datosForm: dict, db: AsyncSession = Depends(get_db))
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error en enviarDatosRecibo: {str(e)}")
 #Funcion que obtiene los registros filtrados en la sección de seguimiento
-async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
+"""async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
     try:
         # Validar que los filtros necesarios estén presentes
         if "year" not in filtros or "month" not in filtros:
@@ -99,7 +99,7 @@ async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=422, detail=f"Error en los filtros: {str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al buscar registros: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al buscar registros: {str(e)}")"""
 
 #Funcion que obtiene la información del registro completo en seguimiento
 async def obtenerInfoRegistro(id_registro: dict, db: AsyncSession = Depends(get_db)):
@@ -190,14 +190,19 @@ async def registrosFiltados(filtros: dict, db: AsyncSession = Depends(get_db)):
                 detail=f"Nombre del mes no válido: {filtros['month']}"
             )
         month_number = months.index(month_name) + 1  # Convertir nombre del mes a número
+        print(f"tipoUsuario antes de enviarlo al modelo: {filtros.get('tipoUsuario')}, Tipo: {type(filtros.get('tipoUsuario'))}")
 
         # Llamar al modelo para obtener los registros filtrados
         registros = await Recibo.obtenerRegistrosFiltrados(
             db,
             year=int(filtros["year"]),
             month=month_number,
-            volante=filtros.get("volante")  # El volante es opcional
+            volante=filtros.get("volante"),  # El volante es opcional
+            tipoUsuario=filtros.get("tipoUsuario") in [True, "true", "True", 1],  # 👈 Conversión manual
+            id_usuario=int(descifrar_dato(filtros.get("id_usuario"))) if filtros.get("id_usuario") else None
         )
+
+
 
         # Devolver la respuesta directamente (ya está en el formato correcto)
         return registros
@@ -244,7 +249,8 @@ async def obtenerRespuestasLigadas(informacion_registro: dict, db: AsyncSession)
                     "fecha": r.fecha_crea.isoformat(),
                     "archivo": r.nombre_archivo_respuesta if r.nombre_archivo_respuesta not in [None, "Sin archivo"] else None,
                     "usuario_id": r.fk_usuario_responde,
-                    "es_propietario": r.fk_usuario_responde == id_usuario
+                    "es_propietario": r.fk_usuario_responde == id_usuario,
+                    "fecha_respuesta": r.fecha_respuesta
                 }
                 for r in respuestas
             ],
@@ -311,6 +317,7 @@ async def consultar_MesAnio(filtro: dict, db: AsyncSession = Depends(get_db)):
     :return: Lista de registros que coinciden con los filtros.
     """
     try:
+        print("el back recibio estos valors", filtro)
         # Validar que los filtros necesarios estén presentes
         if "year" not in filtro or "month" not in filtro:
             raise HTTPException(
@@ -336,6 +343,8 @@ async def consultar_MesAnio(filtro: dict, db: AsyncSession = Depends(get_db)):
             db,
             year=int(filtro["year"]),
             month=month_number,
+            tipoUsuario= filtro.get("tipoUsuario"),
+            id_usuario= descifrar_dato(filtro.get("id_usuario"))
         )
 
         # Devolver la respuesta directamente (ya está en el formato correcto)

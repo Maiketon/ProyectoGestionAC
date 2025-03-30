@@ -185,22 +185,38 @@ class Recibo(Base):
 
 
     @classmethod
-    async def obtenerRegistrosFiltrados(cls, db: AsyncSession, year: int, month: int, volante: str = None):
+    async def obtenerRegistrosFiltrados(
+        cls, 
+        db: AsyncSession, 
+        year: int, 
+        month: int, 
+        volante: str = None,
+        tipoUsuario: bool = False,
+        id_usuario: int = None
+    ):
         """
         Obtiene los registros filtrados por año, mes y (opcionalmente) volante.
+        Si tipoUsuario es True, trae todos los registros (super usuario).
+        Si es False, filtra también por el usuario que registró (fk_usuario_registra == id_usuario).
 
         :param db: Sesión de la base de datos.
         :param year: Año de los registros.
         :param month: Mes de los registros.
         :param volante: Volante de los registros (opcional).
+        :param tipoUsuario: Si es True, muestra todos los registros sin filtrar por usuario.
+        :param id_usuario: ID del usuario para filtrar (si tipoUsuario es False).
         :return: Lista de registros que coinciden con los filtros.
         """
         try:
-            # Construir la consulta
+            # Construir la consulta base
             query = select(cls).where(
                 extract("year", cls.fecha_captura) == year,
                 extract("month", cls.fecha_captura) == month,
             )
+
+            # Si no es super usuario, se filtra por el usuario que registró
+            if not tipoUsuario and id_usuario is not None:
+                query = query.where(cls.fk_usuario_registra == id_usuario)
 
             # Si se proporciona un volante, agregarlo a la consulta
             if volante:
@@ -217,14 +233,19 @@ class Recibo(Base):
                     nombre_area_atencion = None
                     titular_area_atencion = None
                     if registro.atencion:
-                        subquery_atencion = select(CatalogoAreas.nombre, CatalogoAreas.titular).where(CatalogoAreas.id_areas == int(registro.atencion))
+                        subquery_atencion = select(
+                            CatalogoAreas.nombre, 
+                            CatalogoAreas.titular
+                        ).where(
+                            CatalogoAreas.id_areas == int(registro.atencion)
+                        )
                         subresult_atencion = await db.execute(subquery_atencion)
                         result_atencion = subresult_atencion.fetchone()
                         if result_atencion:
                             nombre_area_atencion = result_atencion.nombre
                             titular_area_atencion = result_atencion.titular
 
-                    # Subconsultas para obtener los nombres y titulares de las áreas de las copias
+                    # Subconsultas para copias
                     nombre_copia_para = None
                     titular_copia_para = None
                     nombre_copia_para2 = None
@@ -233,7 +254,12 @@ class Recibo(Base):
                     titular_copia_para3 = None
 
                     if registro.copia_para:
-                        subquery_copia_para = select(CatalogoAreas.nombre, CatalogoAreas.titular).where(CatalogoAreas.id_areas == int(registro.copia_para))
+                        subquery_copia_para = select(
+                            CatalogoAreas.nombre, 
+                            CatalogoAreas.titular
+                        ).where(
+                            CatalogoAreas.id_areas == int(registro.copia_para)
+                        )
                         subresult_copia_para = await db.execute(subquery_copia_para)
                         result_copia_para = subresult_copia_para.fetchone()
                         if result_copia_para:
@@ -241,7 +267,12 @@ class Recibo(Base):
                             titular_copia_para = result_copia_para.titular
 
                     if registro.copia_para2:
-                        subquery_copia_para2 = select(CatalogoAreas.nombre, CatalogoAreas.titular).where(CatalogoAreas.id_areas == int(registro.copia_para2))
+                        subquery_copia_para2 = select(
+                            CatalogoAreas.nombre, 
+                            CatalogoAreas.titular
+                        ).where(
+                            CatalogoAreas.id_areas == int(registro.copia_para2)
+                        )
                         subresult_copia_para2 = await db.execute(subquery_copia_para2)
                         result_copia_para2 = subresult_copia_para2.fetchone()
                         if result_copia_para2:
@@ -249,7 +280,12 @@ class Recibo(Base):
                             titular_copia_para2 = result_copia_para2.titular
 
                     if registro.copia_para3:
-                        subquery_copia_para3 = select(CatalogoAreas.nombre, CatalogoAreas.titular).where(CatalogoAreas.id_areas == int(registro.copia_para3))
+                        subquery_copia_para3 = select(
+                            CatalogoAreas.nombre, 
+                            CatalogoAreas.titular
+                        ).where(
+                            CatalogoAreas.id_areas == int(registro.copia_para3)
+                        )
                         subresult_copia_para3 = await db.execute(subquery_copia_para3)
                         result_copia_para3 = subresult_copia_para3.fetchone()
                         if result_copia_para3:
@@ -267,8 +303,8 @@ class Recibo(Base):
                         "dependencia": registro.procedencia,
                         "asunto": registro.asunto,
                         "atencion_valor": registro.atencion,
-                        "atencion": nombre_area_atencion,  # Nombre del área de atención
-                        "titular_atencion": titular_area_atencion,  # Titular del área de atención
+                        "atencion": nombre_area_atencion,
+                        "titular_atencion": titular_area_atencion,
                         "volante": registro.volante,
                         "indicacion": registro.indicacion,
                         "fecha_captura": registro.fecha_captura.strftime("%Y-%m-%d") if registro.fecha_captura else None,
@@ -276,30 +312,24 @@ class Recibo(Base):
                         "leyenda": registro.leyenda,
                         "nombre_archivo": registro.nombre_archivo,
                         "copia_para": registro.copia_para,
-                        "copia_para_nombre": nombre_copia_para,  # Nombre del área de copia_para
-                        "titular_copia_para": titular_copia_para,  # Titular del área de copia_para
+                        "copia_para_nombre": nombre_copia_para,
+                        "titular_copia_para": titular_copia_para,
                         "copia_para2": registro.copia_para2,
-                        "copia_para2_nombre": nombre_copia_para2,  # Nombre del área de copia_para2
-                        "titular_copia_para2": titular_copia_para2,  # Titular del área de copia_para2
+                        "copia_para2_nombre": nombre_copia_para2,
+                        "titular_copia_para2": titular_copia_para2,
                         "copia_para3": registro.copia_para3,
-                        "copia_para3_nombre": nombre_copia_para3,  # Nombre del área de copia_para3
-                        "titular_copia_para3": titular_copia_para3,  # Titular del área de copia_para3
+                        "copia_para3_nombre": nombre_copia_para3,
+                        "titular_copia_para3": titular_copia_para3,
                         "fk_usuario_registra": registro.fk_usuario_registra,
                     }
                     registros_actualizados.append(registro_dict)
 
                 except Exception as e:
                     print(f"❌ Error al procesar el registro {registro.id_recibos}: {str(e)}")
-                    continue  # Continuar con el siguiente registro si hay un error
+                    continue
 
-            # Depurar el contenido de registros_actualizados
-            print("📝 Registros actualizados:", registros_actualizados)
-
-            # Devolver los registros actualizados
             return registros_actualizados
 
         except Exception as e:
             print(f"❌ Error en obtenerRegistrosFiltrados: {str(e)}")
-            raise  # Relanzar la excepción para manejarla en el controlador
-
-    #FUNCIONES PARA EL COMPONENTE DE CONSULTAR
+            raise

@@ -14,6 +14,7 @@ class Respuestas(Base):
     fk_usuario_responde = Column(Integer, nullable=False)
     fk_recibo = Column(Integer, nullable=False)
     nombre_archivo_respuesta = Column(String, nullable=False)
+    fecha_respuesta = Column(String, nullable=False)
     @classmethod
     async def obtener_por_recibo(cls, db: AsyncSession, id_recibo: int):
             """

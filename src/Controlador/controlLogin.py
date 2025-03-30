@@ -49,6 +49,8 @@ async def validar_usuario(usuario: str, password: str, db: AsyncSession = Depend
         "token_type": "bearer",
         "status": "success",
         "id_user": cifrar_dato(user.id_user),
+        "type_user":(user.rol),
+        "sUser":user.status
     }
 
 

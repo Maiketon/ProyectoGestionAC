@@ -32,11 +32,15 @@ const Consultar = () => {
   
       // Convertir el nombre del mes a número
       const monthNumber = months.indexOf(month) + 1;
-  
+      const idTipoUsuarioCifrado = localStorage.getItem('type_user');
+      const idUsuarioCifrado = localStorage.getItem('id_user');
       // Hacer la solicitud a la API usando axios
       const response = await axios.post("http://127.0.0.1:8000/consultarRegistros", {
         year: year,
         month: month,
+        volante: filters.volante,
+        tipoUsuario: idTipoUsuarioCifrado,
+        id_usuario: idUsuarioCifrado
       });
   
       // Actualizar los datos filtrados

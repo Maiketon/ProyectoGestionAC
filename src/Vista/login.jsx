@@ -48,10 +48,12 @@ y guardar en almacenamiento local del browser un token de protección de rutas y
           console.log("Usuario",usuario,"Contraseña",password);
           localStorage.setItem("token", response.data.access_token); //GUARDA EL TOKEN ANTES DE HACER EL REDIRECCIONAMIENTO//
           localStorage.setItem("id_user", response.data.id_user); //SE GUARDA EL ID DEL USUARIO QUE ESTA HACIENDO LOGIN //
+          localStorage.setItem("type_user", response.data.type_user); //SE GUARDA EL-TIPO DE USUARIO ADMIN T , NORMAL F
+          localStorage.setItem("sUser", response.data.sUser); //SE GUARDA EL-TIPO DE USUARIO ADMIN T , NORMAL F
           setTimeout(() => {
             setLoading(false); // Mostrar spinner
             navigate("/dashboard");
-          }, 2500); //SIMULA UNA PETICIÓN AL SERVIDOR PARA QUE SE VISUALICE EL SPINNER//
+          }); //SIMULA UNA PETICIÓN AL SERVIDOR PARA QUE SE VISUALICE EL SPINNER//
  
         }
         } 

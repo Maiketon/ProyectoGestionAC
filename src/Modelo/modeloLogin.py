@@ -1,7 +1,7 @@
 
 #SE DECLARON LOS MODELOS DE LA BASE DE DATOS A OCUPAR PARA EL LOGIN#
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import HTTPException
@@ -15,7 +15,10 @@ class Usuario(Base):
     id_user = Column(Integer, primary_key=True, index=True)
     usr = Column(String, unique=True, index=True)
     pwd = Column(String)
-
+    rol = Column(Boolean)
+    status= Column(Boolean)
+    nombre = Column(String)
+    apellido_p = Column(String)
     @classmethod
     async def validar_credenciales(cls, usuario: str, password: str, db: AsyncSession):
         # Ejecutar la consulta SQL para buscar el usuario
