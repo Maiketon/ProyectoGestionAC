@@ -279,6 +279,8 @@ const [respuestasData, setRespuestasData] = useState([]);
               month: '2-digit',
               year: 'numeric'
             }) : "Sin fecha",
+            fecha_captura: resp.fecha_captura || null, // Añadir fecha_captura
+            fecha_respuesta: resp.fecha_respuesta || null, // Añadir fecha_respuesta
             adjunto: resp.archivo || null,
             es_mio: resp.es_propietario || false
           }));
@@ -303,6 +305,7 @@ const [respuestasData, setRespuestasData] = useState([]);
         break;
     }
     // Depurar el estado después de ejecutar la acción
+    console.log("Acción ejecutada:", action);
     console.log("Estado final - showModalModificar:", showModalModificar);
     console.log("Estado final - showModalRespuesta:", showModalRespuesta);
     };

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Button, Form, Table } from "react-bootstrap";
 import axios from "axios";
+
 const ModalRespuesta = ({
   show,
   onHide,
@@ -8,9 +9,20 @@ const ModalRespuesta = ({
   respuestasPrevias = [],
   selectedRecord
 }) => {
+  // Depuración: Verificar las props recibidas
+  console.log("Props recibidas en ModalRespuesta:", {
+    show,
+    onHide,
+    onSubmit,
+    respuestasPrevias,
+    selectedRecord
+  });
+
   const [formData, setFormData] = useState({
     respuesta: "",
     pdf: null,
+    fecha_crea: null,
+    fecha_respuesta: null,
   });
   const [pdfFileName, setPdfFileName] = useState("");
 
@@ -39,7 +51,6 @@ const ModalRespuesta = ({
     }
 
     try {
-      // Validar que tenemos el registro seleccionado
       if (!selectedRecord || !selectedRecord.id_registro) {
         throw new Error("No se ha seleccionado un registro válido");
       }
@@ -49,7 +60,6 @@ const ModalRespuesta = ({
         throw new Error("Usuario no autenticado");
       }
 
-      // Subir archivo si existe
       let nombreArchivo = "Sin archivo";
       if (formData.pdf) {
         const formDataPdf = new FormData();
@@ -67,14 +77,19 @@ const ModalRespuesta = ({
         nombreArchivo = uploadResponse.data.nombre_archivo;
       }
 
-      // Registrar la respuesta
+      // Usar las fechas como strings directamente
+      const fecha_respuesta = formData.fecha_respuesta;
+      const fecha_crea = formData.fecha_crea;
+
       await axios.post(
         'http://127.0.0.1:8000/registrarRespuesta',
         {
           respuesta: formData.respuesta,
           id_usuario: idUsuario,
-          id_registro: selectedRecord.id_registro, // Usar el ID del registro seleccionado
-          nombre_archivo_respuesta: nombreArchivo
+          id_registro: selectedRecord.id_registro,
+          nombre_archivo_respuesta: nombreArchivo,
+          fecha_captura: fecha_crea,
+          fecha_respuesta: fecha_respuesta,
         },
         {
           headers: {
@@ -84,9 +99,13 @@ const ModalRespuesta = ({
         }
       );
 
-      // Cerrar y limpiar
       onHide();
-      setFormData({ respuesta: '', pdf: null });
+      setFormData({ 
+        respuesta: '', 
+        pdf: null,
+        fecha_respuesta: null,
+        fecha_crea: null,
+      });
       setPdfFileName('');
       alert('Respuesta guardada correctamente');
 
@@ -99,7 +118,6 @@ const ModalRespuesta = ({
     }
   };
 
-  // Función para abrir adjuntos
   const handleOpenAdjunto = (nombreArchivo) => {
     if (nombreArchivo) {
       window.open(
@@ -124,36 +142,42 @@ const ModalRespuesta = ({
                 <thead>
                   <tr>
                     <th>Respuesta</th>
-                    <th>Fecha</th>
+                    <th>Fecha Captura</th>
+                    <th>Fecha Respuesta</th>
                     <th>Adjunto</th>
                   </tr>
                 </thead>
                 <tbody>
                   {respuestasPrevias.map((previa, index) => (
-                    <tr key={index}>
-                      <td>{previa.respuesta}</td>
-                      <td>{previa.fecha}</td>
-                      <td>
-                      {previa.adjunto ? (
-                          <a 
-                            href="#" 
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleOpenAdjunto(previa.adjunto);
-                            }}
-                            style={{ cursor: 'pointer', color: '#007bff' }}
-                          >
-                            {previa.adjunto}
-                          </a>
-                        ) : "Sin adjunto"}
-                      </td>
-                    </tr>
+                    <tr key={index}><td>{previa.respuesta}</td><td>{previa.fecha_captura || "Sin fecha"}</td><td>{previa.fecha_respuesta || "Sin fecha"}</td><td>{previa.adjunto ? (<a href="#" onClick={(e) => {e.preventDefault(); handleOpenAdjunto(previa.adjunto);}} style={{ cursor: 'pointer', color: '#007bff' }}>{previa.adjunto}</a>) : "Sin adjunto"}</td></tr>
                   ))}
                 </tbody>
               </Table>
             ) : (
               <p>Sin respuestas previas del volante...</p>
             )}
+          </Form.Group>
+
+          <Form.Group controlId="fecha_respuesta" className="mb-3">
+            <Form.Label>Fecha de respuesta:</Form.Label>
+            <Form.Control
+              type="text"
+              name="fecha_respuesta"
+              value={formData.fecha_respuesta || ""}
+              onChange={handleChange}
+              placeholder="Ingresa la fecha (DD/MM/YYYY)"
+            />
+          </Form.Group>
+
+          <Form.Group controlId="fecha_crea" className="mb-3">
+            <Form.Label>Fecha de captura:</Form.Label>
+            <Form.Control
+              type="text"
+              name="fecha_crea"
+              value={formData.fecha_crea || ""}
+              onChange={handleChange}
+              placeholder="Ingresa la fecha (DD/MM/YYYY)"
+            />
           </Form.Group>
 
           <Form.Group controlId="respuesta" className="mb-3">
