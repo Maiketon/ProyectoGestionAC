@@ -58,41 +58,53 @@ const Seguimiento = () => {
   };
 
   const handleSearch = async () => {
-    // Validar si no se ha seleccionado mes/año ni se ha ingresado un volante
-    if (!filters.month && !filters.year && !filters.volante) {
-      setValidationMessage("Debe de seleccionar mes/año");
-      setShowValidationModal(true);
+    // Validar si no se ha seleccionado mes ni año
+    if (!filters.month && !filters.year) {
+      setGlobalModalMessage("Debe de seleccionar el campos mes y el campo año");
+      setGlobalModalType("warning");
+      setShowGlobalModal(true);
       return; // No continuar con la búsqueda
     }
-
-    // Validar si no se ha seleccionado año ni se ha ingresado un volante
-    if (!filters.month) {
-      setValidationMessage("Debe de seleccionar mes y año");
-      setShowValidationModal(true);
+  
+    // Validación: Si el campo "mes" está informado, también debe de seleccionar el campo "año"
+    if (filters.month && !filters.year) {
+      setGlobalModalMessage("Al elegir el mes, también debe de seleccionar el año");
+      setGlobalModalType("warning");
+      setShowGlobalModal(true);
       return; // No continuar con la búsqueda
     }
-
-    // Validar si no se ha seleccionado mes/año ni se ha ingresado un volante
-    if (!filters.year) {
-      setValidationMessage("Debe de seleccionar mes y año");
-      setShowValidationModal(true);
+  
+    // Validación: Si el campo "año" está informado, también debe de seleccionar el campo "mes"
+    if (filters.year && !filters.month) {
+      setGlobalModalMessage("Al elegir el año, también debe de seleccionar el mes");
+      setGlobalModalType("warning");
+      setShowGlobalModal(true);
       return; // No continuar con la búsqueda
     }
-
+  
+    // Validación: Si el campo "volante" está informado, debe de informar los campos "mes" y "año"
+    if (filters.volante && (!filters.month || !filters.year)) {
+      setGlobalModalMessage("Si ingresa un volante, debe de seleccionar mes y año");
+      setGlobalModalType("warning");
+      setShowGlobalModal(true);
+      return; // No continuar con la búsqueda
+    }
+    
     // Validar el formato del volante
     const volantePattern = /^\d{5}$/;
     if (filters.volante && !volantePattern.test(filters.volante)) {
       setVolanteError("El volante debe tener exactamente 5 dígitos numéricos (por ejemplo, 12345)");
       return; // No continuar con la búsqueda si el formato es incorrecto
     }
-
+  
     // Validar si hay un valor en "volante" pero no se seleccionó mes ni año
     if (filters.volante && (!filters.month || !filters.year)) {
-      setValidationMessage("Falta seleccionar mes/año");
-      setShowValidationModal(true);
+      setGlobalModalMessage("Falta seleccionar mes/año");
+      setGlobalModalType("warning");
+      setShowGlobalModal(true);
       return; // No continuar con la búsqueda
     }
-
+  
     console.log("haciendo petición de busquea con valores \n");
     console.log(filters);
     console.log("\n");
@@ -107,52 +119,29 @@ const Seguimiento = () => {
         tipoUsuario: idTipoUsuarioCifrado,
         id_usuario: idUsuarioCifrado
       });
-
+  
       if (response.status === 200) {
         console.log(response.data);
-        setAllData(response.data); // Actualizar allData con los registros obtenidos
+        setFilteredData(response.data); // Actualizar filteredData con los registros obtenidos
+        // Validación adicional: si no hay datos, mostrar el modal
+        if (response.data.length === 0) {
+          setGlobalModalMessage("No hay información para el período seleccionado.");
+          setGlobalModalType("warning");
+          setShowGlobalModal(true);
+        }
       } else {
         throw new Error("Error al obtener los registros");
       }
     } catch (error) {
       console.error("Error:", error);
       setGlobalModalMessage(error.response?.data?.detail || "Hubo un error al obtener los registros. Favor de contactar con el área de la Subdirección de Informática.");
-      setGlobalModalType("error");
+      setGlobalModalType("warning");
       setShowGlobalModal(true);
     }
   };
-
+  
   // Estado para los datos filtrados (inicia vacío)
   const [filteredData, setFilteredData] = useState([]);
-
-  // Datos de ejemplo (puedes reemplazar con datos de una API)
-  /*const allData = [
-    {
-      id_registro: 1, // Nuevo campo
-      fecha: "24/02/2025",
-      referencia: "4569",
-      remitente: "Eva Yael Reinosa Sánchez",
-      cargo: "Directora General de Desarrollo y Bienestar",
-      noOficio: "AC/RMSG/00013/2025",
-      dependencia: "DGDB",
-      turnado: "Desarrollo y Bienestar",
-      instruccion: "ASISTIR Y DAR SEGUIMIENTO",
-      volante: "259874",
-    },
-    {
-      id_registro: 2, // Nuevo campo
-      fecha: "24/02/2025",
-      referencia: "521",
-      remitente: "abhtzir reynoso",
-      cargo: "abhtzir reynoso",
-      noOficio: "AC/RMSG/00001/2025",
-      dependencia: "DRMSG",
-      turnado: "Desarrollo y Bienestar",
-      instruccion: "ASISTIR Y DAR SEGUIMIENTO",
-      volante: "4521",
-    },
-    // Otros registros...
-  ];*/
 
   const [areas, setAreas] = useState([]); // Estado para las áreas
   const [showModalModificar, setShowModalModificar] = useState(false); // Estado para el modal de modificar
@@ -194,7 +183,7 @@ const Seguimiento = () => {
       } catch (error) {
         console.error("Error al obtener las áreas:", error);
         setGlobalModalMessage("No se pudieron cargar las áreas. Favor de contactar con el área de la Subdirección de Informática.");
-        setGlobalModalType("error");
+        setGlobalModalType("warning");
         setShowGlobalModal(true);
       }
     };
@@ -316,7 +305,7 @@ const Seguimiento = () => {
             console.error("Detalles del error 422:", error.response.data);
           }
           setGlobalModalMessage("Hubo un error al obtener los datos del registro. Favor de contactar con el área de la Subdirección de Informática.");
-          setGlobalModalType("error");
+          setGlobalModalType("warning");
           setShowGlobalModal(true);
         }
         break;
@@ -364,7 +353,7 @@ const Seguimiento = () => {
           console.log("Abriendo modal de respuesta a pesar del error...");
           setShowModalRespuesta(true); // Abrir el modal incluso si hay un error, para que el usuario pueda interactuar
           setGlobalModalMessage(error.response?.data?.detail || "Error al cargar respuestas. Favor de contactar con el área de la Subdirección de Informática.");
-          setGlobalModalType("error");
+          setGlobalModalType("warning");
           setShowGlobalModal(true);
         }
         break;
@@ -568,7 +557,7 @@ const Seguimiento = () => {
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);
       setGlobalModalMessage("Hubo un error al guardar la respuesta. Favor de contactar con el área de la Subdirección de Informática.");
-      setGlobalModalType("error");
+      setGlobalModalType("warning");
       setShowGlobalModal(true);
     }
   }

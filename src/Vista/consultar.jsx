@@ -86,8 +86,9 @@ const Consultar = () => {
   const exportToExcel = (data, year, month) => {
     // Validar si no se ha seleccionado mes ni año
     if (!filters.month && !filters.year) {
-      setValidationMessage("Debe de seleccionar mes/año");
-      setShowValidationModal(true);
+      setGlobalModalMessage("Debe de seleccionar mes/año");
+      setGlobalModalType("warning");
+      setShowGlobalModal(true);
       return; // Detener la ejecución si no hay filtros
     }
 
