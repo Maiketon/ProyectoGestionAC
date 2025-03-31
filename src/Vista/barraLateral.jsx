@@ -87,7 +87,7 @@ function BarraLateral({ setPlegado }) {
           <h5>Problemas / Soporte</h5>
           <p>
             <ul>
-            <li>Favor de contactar con el arrea de la Subdirección de Informática</li>
+            <li>Favor de contactar con el área de la Subdirección de Informática</li>
             </ul>
           </p>
         </Modal.Body>

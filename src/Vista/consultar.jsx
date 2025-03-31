@@ -1,8 +1,11 @@
+// src/Vista/consultar.jsx
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Table, Button, Spinner, Alert, Modal } from "react-bootstrap";
 import axios from "axios"; // Importar axios
 import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
+import GlobalModal from "./Modales/globalModal.jsx"; // Ajusta la ruta según tu estructura
+
 // Definimos months y years fuera del componente para evitar cambios en la referencia
 const months = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -28,6 +31,11 @@ const Consultar = () => {
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationMessage, setValidationMessage] = useState("");
 
+  // Estado para el modal global
+  const [showGlobalModal, setShowGlobalModal] = useState(false);
+  const [globalModalMessage, setGlobalModalMessage] = useState("");
+  const [globalModalType, setGlobalModalType] = useState("info");
+
   // Función para obtener los registros filtrados desde la API
   const fetchFilteredData = async (month, year) => {
     try {
@@ -50,7 +58,10 @@ const Consultar = () => {
       // Actualizar los datos filtrados
       setFilteredData(response.data);
     } catch (err) {
-      setError(err.response?.data?.detail || "Error al obtener los registros");
+      setError(err.response?.data?.detail || "Error al obtener los registros. Favor de contactar con el área de la Subdirección de Informática.");
+      setGlobalModalMessage(err.response?.data?.detail || "Error al obtener los registros. Favor de contactar con el área de la Subdirección de Informática.");
+      setGlobalModalType("error");
+      setShowGlobalModal(true);
     } finally {
       setLoading(false);
     }
@@ -82,7 +93,9 @@ const Consultar = () => {
 
     // Validar si hay al menos un registro en data
     if (!data || data.length === 0) {
-        alert("No hay registros para exportar."); // Mostrar mensaje de alerta
+        setGlobalModalMessage("No hay registros para exportar.");
+        setGlobalModalType("warning");
+        setShowGlobalModal(true);
         return; // Detener la ejecución si no hay registros
     }
 
@@ -295,6 +308,14 @@ const Consultar = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal global */}
+      <GlobalModal
+        show={showGlobalModal}
+        onHide={() => setShowGlobalModal(false)}
+        message={globalModalMessage}
+        type={globalModalType}
+      />
     </Container>
   );
 };

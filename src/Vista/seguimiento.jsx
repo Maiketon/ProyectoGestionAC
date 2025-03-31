@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 // MODALES O COMPONENTES
+import GlobalModal from "./Modales/globalModal.jsx"; // Ajusta la ruta según tu estructura
 import ModalModificar from "./Modales/modalModificar.jsx"; // Ajusta la ruta según tu estructura de carpetas
 import ModalRespuesta from "./Modales/modalRespuesta.jsx"; // Ajusta la ruta según tu estructura de carpetas
 import LogoAlcaldia from "./Utils/Images/Logo_AC.jpg";
@@ -33,6 +34,11 @@ const Seguimiento = () => {
   // Estado para el modal de validación de mes/año
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [validationMessage, setValidationMessage] = useState(""); // Nuevo estado para el mensaje dinámico del modal
+
+  // Estado para el modal global
+  const [showGlobalModal, setShowGlobalModal] = useState(false);
+  const [globalModalMessage, setGlobalModalMessage] = useState("");
+  const [globalModalType, setGlobalModalType] = useState("info");
 
   const [allData, setAllData] = useState([]); // Reemplaza los datos en crudo con un estado dinámico
 
@@ -104,13 +110,15 @@ const Seguimiento = () => {
 
       if (response.status === 200) {
         console.log(response.data);
-        setFilteredData(response.data); // Actualizar allData con los registros obtenidos
+        setAllData(response.data); // Actualizar allData con los registros obtenidos
       } else {
         throw new Error("Error al obtener los registros");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Hubo un error al obtener los registros");
+      setGlobalModalMessage(error.response?.data?.detail || "Hubo un error al obtener los registros. Favor de contactar con el área de la Subdirección de Informática.");
+      setGlobalModalType("error");
+      setShowGlobalModal(true);
     }
   };
 
@@ -185,7 +193,9 @@ const Seguimiento = () => {
         setAreas(response.data);
       } catch (error) {
         console.error("Error al obtener las áreas:", error);
-        alert("No se pudieron cargar las áreas. Intenta de nuevo.");
+        setGlobalModalMessage("No se pudieron cargar las áreas. Favor de contactar con el área de la Subdirección de Informática.");
+        setGlobalModalType("error");
+        setShowGlobalModal(true);
       }
     };
 
@@ -297,7 +307,7 @@ const Seguimiento = () => {
             console.log("Abriendo modal de modificar...");
             setShowModalModificar(true); 
           } else {
-            throw new Error("Error al obtener los datos del registro");
+            throw new Error("Error al obtener los datos del registro. Favor de contactar con el área de la Subdirección de Informática.");
           }
         } catch (error) {
           console.error("Error en acción modificar:", error);
@@ -305,7 +315,9 @@ const Seguimiento = () => {
           if (error.response && error.response.status === 422) {
             console.error("Detalles del error 422:", error.response.data);
           }
-          alert("Hubo un error al obtener los datos del registro");
+          setGlobalModalMessage("Hubo un error al obtener los datos del registro. Favor de contactar con el área de la Subdirección de Informática.");
+          setGlobalModalType("error");
+          setShowGlobalModal(true);
         }
         break;
   
@@ -351,10 +363,9 @@ const Seguimiento = () => {
           setRespuestasData([]);
           console.log("Abriendo modal de respuesta a pesar del error...");
           setShowModalRespuesta(true); // Abrir el modal incluso si hay un error, para que el usuario pueda interactuar
-          const errorMessage = error.response?.data?.detail || 
-                              error.message || 
-                              "Error al cargar respuestas";
-          alert(errorMessage);
+          setGlobalModalMessage(error.response?.data?.detail || "Error al cargar respuestas. Favor de contactar con el área de la Subdirección de Informática.");
+          setGlobalModalType("error");
+          setShowGlobalModal(true);
         }
         break;
   
@@ -546,7 +557,9 @@ const Seguimiento = () => {
         },
       });
       if (response.status === 200) {
-        alert("Respuesta guardada exitosamente");
+        setGlobalModalMessage("Respuesta guardada exitosamente");
+        setGlobalModalType("success");
+        setShowGlobalModal(true);
         // Opcional: Actualizar la tabla después de guardar
         handleSearch();
       } else {
@@ -554,7 +567,9 @@ const Seguimiento = () => {
       }
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);
-      alert("Hubo un error al guardar la respuesta");
+      setGlobalModalMessage("Hubo un error al guardar la respuesta. Favor de contactar con el área de la Subdirección de Informática.");
+      setGlobalModalType("error");
+      setShowGlobalModal(true);
     }
   }
 
@@ -774,6 +789,14 @@ const Seguimiento = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal global */}
+      <GlobalModal
+        show={showGlobalModal}
+        onHide={() => setShowGlobalModal(false)}
+        message={globalModalMessage}
+        type={globalModalType}
+      />
     </Container>
   );
 };
