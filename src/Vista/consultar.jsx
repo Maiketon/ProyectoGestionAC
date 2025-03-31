@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Table, Button, Spinner, Alert } from "react-bootstrap";
+import { Container, Row, Col, Form, Table, Button, Spinner, Alert, Modal } from "react-bootstrap";
 import axios from "axios"; // Importar axios
 import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
@@ -23,6 +23,10 @@ const Consultar = () => {
   // Estados para manejar la carga y errores
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Estado para el modal de validación
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
 
   // Función para obtener los registros filtrados desde la API
   const fetchFilteredData = async (month, year) => {
@@ -69,6 +73,13 @@ const Consultar = () => {
 
   
   const exportToExcel = (data, year, month) => {
+    // Validar si no se ha seleccionado mes ni año
+    if (!filters.month && !filters.year) {
+      setValidationMessage("Debe de seleccionar mes/año");
+      setShowValidationModal(true);
+      return; // Detener la ejecución si no hay filtros
+    }
+
     // Validar si hay al menos un registro en data
     if (!data || data.length === 0) {
         alert("No hay registros para exportar."); // Mostrar mensaje de alerta
@@ -265,6 +276,25 @@ const Consultar = () => {
           </Table>
         </Col>
       </Row>
+
+      {/* Modal para validación de mes/año */}
+      <Modal
+        show={showValidationModal}
+        onHide={() => setShowValidationModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Validación</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{validationMessage}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowValidationModal(false)}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

@@ -32,6 +32,7 @@ const Seguimiento = () => {
 
   // Estado para el modal de validación de mes/año
   const [showValidationModal, setShowValidationModal] = useState(false);
+  const [validationMessage, setValidationMessage] = useState(""); // Nuevo estado para el mensaje dinámico del modal
 
   const [allData, setAllData] = useState([]); // Reemplaza los datos en crudo con un estado dinámico
 
@@ -51,6 +52,27 @@ const Seguimiento = () => {
   };
 
   const handleSearch = async () => {
+    // Validar si no se ha seleccionado mes/año ni se ha ingresado un volante
+    if (!filters.month && !filters.year && !filters.volante) {
+      setValidationMessage("Debe de seleccionar mes/año");
+      setShowValidationModal(true);
+      return; // No continuar con la búsqueda
+    }
+
+    // Validar si no se ha seleccionado año ni se ha ingresado un volante
+    if (!filters.month) {
+      setValidationMessage("Debe de seleccionar mes y año");
+      setShowValidationModal(true);
+      return; // No continuar con la búsqueda
+    }
+
+    // Validar si no se ha seleccionado mes/año ni se ha ingresado un volante
+    if (!filters.year) {
+      setValidationMessage("Debe de seleccionar mes y año");
+      setShowValidationModal(true);
+      return; // No continuar con la búsqueda
+    }
+
     // Validar el formato del volante
     const volantePattern = /^\d{5}$/;
     if (filters.volante && !volantePattern.test(filters.volante)) {
@@ -60,6 +82,7 @@ const Seguimiento = () => {
 
     // Validar si hay un valor en "volante" pero no se seleccionó mes ni año
     if (filters.volante && (!filters.month || !filters.year)) {
+      setValidationMessage("Falta seleccionar mes/año");
       setShowValidationModal(true);
       return; // No continuar con la búsqueda
     }
@@ -743,7 +766,7 @@ const Seguimiento = () => {
           <Modal.Title>Validación</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Falta seleccionar mes/año</p>
+          <p>{validationMessage}</p>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowValidationModal(false)}>

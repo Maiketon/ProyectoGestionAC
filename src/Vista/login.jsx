@@ -1,6 +1,6 @@
 //COMPONENTE PRINCIPAL DE LOGIN//
 //DECLARACION DE LIBRERIAS Y HOOKS//
-import React, {useState,useEffect} from "react";
+import React, {useState, useEffect} from "react";
 import SpinnerComponent from '../SpinnerComponent';   // Lib para Spinner
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -68,7 +68,7 @@ y guardar en almacenamiento local del browser un token de protección de rutas y
         setTimeout(() => {
           setLoading(false);
           navigate("/dashboard");
-        }, 2500); //SIMULA UNA PETICIÓN AL SERVIDOR PARA QUE SE VISUALICE EL SPINNER//
+        }, ); 
       }
     } catch (error) {
       //console.error("Error en la solicitud:", error);
@@ -80,7 +80,7 @@ y guardar en almacenamiento local del browser un token de protección de rutas y
       // Retrasar el cambio de estado de loading para dar tiempo al modal de mostrarse
       setTimeout(() => {
         setLoading(false);
-      }, 500);
+      }, );
     }
   };
 
@@ -95,13 +95,6 @@ useEffect(() => {
       document.body.style.overflow = "auto";
     };
   }, []);
-
-// Limpiar el localStorage al cargar la página de login
-useEffect(() => {
-  console.log("Limpiando localStorage al cargar la página de login...");
-  localStorage.clear();
-  console.log("localStorage después de limpiar:", localStorage);
-}, []);
 
 // Agregar un useEffect para depurar el estado showModal
 useEffect(() => {
