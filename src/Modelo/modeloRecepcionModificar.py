@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from Modelo.database import Base
 from Modelo.modeloCatalogos import CatalogoAreas
+from Modelo.modeloLogin import Usuario
 import logging
 
 # Configurar el logging
@@ -245,13 +246,15 @@ class Recibo(Base):
                             nombre_area_atencion = result_atencion.nombre
                             titular_area_atencion = result_atencion.titular
 
-                    # Subconsultas para copias
+                    # Inicializa las variables con None antes de las consultas
                     nombre_copia_para = None
                     titular_copia_para = None
                     nombre_copia_para2 = None
                     titular_copia_para2 = None
                     nombre_copia_para3 = None
                     titular_copia_para3 = None
+                    nombre_usuario = None
+                    apellido_usuario = None
 
                     if registro.copia_para:
                         subquery_copia_para = select(
@@ -288,9 +291,42 @@ class Recibo(Base):
                         )
                         subresult_copia_para3 = await db.execute(subquery_copia_para3)
                         result_copia_para3 = subresult_copia_para3.fetchone()
+
+                        # Agregar verificación para evitar errores
                         if result_copia_para3:
                             nombre_copia_para3 = result_copia_para3.nombre
                             titular_copia_para3 = result_copia_para3.titular
+
+                        
+                    logger.debug(f"Iniciando subconsulta para usuario con ID del usuario que registro {registro.fk_usuario_registra}")
+                        # Subconsulta para obtener el nombre y apellido del usuario que registró
+                    if registro.fk_usuario_registra:
+                            try:
+                                logger.debug(f"Iniciando subconsulta para usuario con ID: {registro.fk_usuario_registra}")
+                                
+                                subquery_usuario = select(
+                                    Usuario.nombre,
+                                    Usuario.apellido_p
+                                ).where(
+                                    Usuario.id_user == id_usuario
+                                )
+                                
+                                logger.debug(f"Consulta SQL generada: {str(subquery_usuario)}")
+                                
+                                subresult_usuario = await db.execute(subquery_usuario)
+                                result_usuario = subresult_usuario.fetchone()
+                                
+                                if result_usuario:
+                                    nombre_usuario = result_usuario.nombre
+                                    apellido_usuario = result_usuario.apellido_p
+                                    logger.debug(f"Usuario encontrado - Nombre: {nombre_usuario}, Apellido: {apellido_usuario}")
+                                else:
+                                    logger.warning(f"No se encontró usuario con ID: {registro.fk_usuario_registra}")
+                                    
+                            except Exception as e:
+                                logger.error(f"Error en subconsulta de usuario: {str(e)}")
+                                raise
+
 
                     # Crear el diccionario con los datos transformados
                     registro_dict = {
@@ -321,6 +357,9 @@ class Recibo(Base):
                         "copia_para3_nombre": nombre_copia_para3,
                         "titular_copia_para3": titular_copia_para3,
                         "fk_usuario_registra": registro.fk_usuario_registra,
+                        "nombre_usuario": nombre_usuario,
+                        "apellido_usuario": apellido_usuario
+                        
                     }
                     registros_actualizados.append(registro_dict)
 

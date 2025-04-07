@@ -256,7 +256,7 @@ const Seguimiento = () => {
         break;
   
       case "imprimir":
-        console.log("Generando PDF...");
+        console.log("Generando PDF...", item);
         generatePDF(item); // Llamamos a la función para generar el PDF
         break;
   
@@ -515,6 +515,13 @@ const Seguimiento = () => {
     doc.text("Coordinador General de Planeación", pageWidth / 2, yOffset + 38, { align: 'center' });
     doc.text("del Desarrollo y Buena Administración", pageWidth / 2, yOffset + 42, { align: 'center' });
 
+
+    if (item.leyenda === 0 && item.apellido_usuario?.trim()) {
+      yOffset += 50; // Espacio después de la firma
+      doc.setFontSize(8);
+      doc.setFont(defaultFont, 'bold');
+      doc.text(item.apellido_usuario.trim(), 15, yOffset); // 15px desde la izquierda
+    }
     // ======================
     // Imagen del pie de página
     // Queremos que abarque todo el ancho del renglón
